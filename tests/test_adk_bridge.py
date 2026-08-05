@@ -102,6 +102,46 @@ class EventSerializationTests(unittest.TestCase):
         self.assertEqual(record["attachments"][0]["byte_length"], 12)
         self.assertNotIn("secret-bytes", str(record))
 
+    def test_file_uri_is_reduced_to_presence_metadata(self):
+        file_data = SimpleNamespace(
+            mime_type="application/pdf",
+            file_uri="gs://private-bucket/sensitive-file.pdf",
+        )
+        part = SimpleNamespace(
+            text=None,
+            thought=False,
+            function_call=None,
+            function_response=None,
+            inline_data=None,
+            file_data=file_data,
+        )
+        record = serialize_adk_event(
+            FakeEvent(author="echo", parts=[part]),
+            sequence=2,
+        )
+
+        self.assertEqual(record["attachments"][0]["uri_present"], True)
+        self.assertNotIn("private-bucket", str(record))
+
+    def test_private_thought_text_is_never_transmitted(self):
+        part = SimpleNamespace(
+            text="private reasoning that must not be exposed",
+            thought=True,
+            function_call=None,
+            function_response=None,
+            inline_data=None,
+            file_data=None,
+        )
+        record = serialize_adk_event(
+            FakeEvent(author="vega", parts=[part]),
+            sequence=3,
+        )
+
+        self.assertEqual(record["thought_parts_count"], 1)
+        self.assertEqual(record["texts"], [])
+        self.assertNotIn("private reasoning", str(record))
+        self.assertNotIn("thoughts", record)
+
     def test_final_text_is_marked_as_final(self):
         part = SimpleNamespace(
             text="Decisión final basada en evidencia.",
@@ -204,6 +244,7 @@ class ReadinessTests(unittest.TestCase):
             any("mock" in error.lower() for error in state["validation_errors"])
         )
         self.assertIn("never simulates", state["truth_boundary"])
+        self.assertIn("never exposes", state["truth_boundary"])
 
 
 if __name__ == "__main__":
