@@ -4,15 +4,38 @@
 
 ORPHEUS Ω searches technical history, reconstructs why abandoned inventions failed, tests whether modern technology can revive them, and converts verified work into measurable human benefit and legitimate sustainability paths.
 
-## Version 0.4 — evidence-aware autonomy
+## Version 0.5 — real Google ADK multi-agent architecture
 
-The current release replaces the original single-purpose autonomous mockup with a stricter operating model:
+Version 0.5 replaces the former single ADK agent whose specialist roles existed only inside one instruction prompt. The Gemini execution surface is now a real Google Agent Development Kit workflow composed of twelve specialist `LlmAgent` instances, two concurrent `ParallelAgent` groups, and one deterministic `SequentialAgent` root.
 
-- every human objective is classified as **verification** or **discovery**;
+The ADK pipeline is:
+
+1. **ORION** creates the measurable mission contract.
+2. **VIGÍA**, **NYX-7**, and **VEGA** run concurrently to inspect provenance, risk, and verification requirements.
+3. **ATLAS-9** creates candidate architectures and rejection rules.
+4. **SPARK** calls the repository's applicable deterministic tools.
+5. **AUREUS-7**, **BASTION**, **ECHO**, **RIFT**, and **VANTA-0** run concurrently to evaluate sustainability, approval gates, provenance, blockers, and alternative routes.
+6. **KIRA** resolves disagreements and returns the final evidence-controlled decision.
+
+Every specialist writes to a unique ADK `output_key`, so downstream agents receive explicit session state rather than relying on theatrical role names in a shared prompt. The real topology is available as machine-readable JSON at `GET /architecture/agents`.
+
+## Two honest execution surfaces
+
+The repository intentionally separates two surfaces:
+
+- `agent_app/agent.py` is the real Gemini + Google ADK multi-agent workflow.
+- `orpheus/autonomy.py` is the credential-free deterministic control plane used by the FastAPI interface, scheduler, reproducible demo, tests, approval queue, and offline verification.
+
+This separation keeps the project testable without credentials while preserving a genuine cloud-agent implementation. The next integration milestone is to stream ADK events into the same control interface without weakening the offline verification path.
+
+## Evidence-aware autonomy
+
+Every human objective is classified as **verification** or **discovery**:
+
 - only passive food-cooling goals may use the repository's current deterministic simulator;
 - unrelated goals never inherit a false success result from the reference mission;
-- every agent stage records a real output summary, timestamps, and status;
-- the runtime keeps a cycle history and can optionally persist state to JSON;
+- every local runtime stage records an output summary, timestamps, and status;
+- the runtime keeps cycle history and can optionally persist state to JSON;
 - repeated scheduler calls can carry an idempotency key;
 - external and financial actions can be approved or declined with a human note;
 - KIRA produces a downloadable decision memo and complete JSON state;
@@ -28,29 +51,18 @@ It can:
 - accept a new direction through chat;
 - display the active classification and technical status;
 - render the full recommendation, benefit, candidates, economics, limits, and history;
-- show the output produced by each agent stage;
+- show the output produced by each local execution stage;
 - export the KIRA decision memo as Markdown;
 - export the full runtime state as JSON;
 - review, approve, or decline gated actions;
-- show the team, execution progress, events, and recent cycles.
+- show the team, execution progress, events, and recent cycles;
+- expose the real ADK hierarchy through `/architecture/agents`.
 
-## Autonomous operating model
+## Safety and approval boundary
 
-When autonomous mode is enabled, ORPHEUS runs a complete cycle without waiting for continuous user messages:
+Safe local, reversible, non-financial actions may run automatically. Communication, publication, contracting, payment, account changes, private-data disclosure, and irreversible actions require explicit human approval.
 
-1. **ORION** defines the measurable mission contract.
-2. **VIGÍA** maps technical history and opportunity paths.
-3. **NYX-7** detects failures, contradictions, and dependencies.
-4. **VEGA** separates evidence, hypotheses, and unknowns.
-5. **ATLAS-9** designs a manufacturable solution and workflow.
-6. **SPARK** executes only the deterministic tools that actually apply.
-7. **AUREUS-7** creates labelled price, margin, licensing, and funding hypotheses.
-8. **BASTION** blocks unsupported, unsafe, or unauthorized actions.
-9. **ECHO** preserves provenance, limitations, and the decision memo.
-10. **KIRA** integrates the output and returns the highest-value decision to the human.
-11. **VANTA-0** provides legitimate alternatives when the main route is blocked.
-
-Safe local actions may run automatically. Communication, publication, contracting, payment, account changes, private-data disclosure, and irreversible actions require explicit human approval.
+Gemini may propose hypotheses. Deterministic tools and an independent verifier decide whether a supported technical mission passes. KIRA may automatically complete safe local work. The human decides whether any external or financial action may proceed.
 
 ## Current technical mission
 
@@ -77,6 +89,32 @@ uvicorn app.main:app --reload
 
 Open `http://127.0.0.1:8000/`.
 
+## Verify the real ADK topology
+
+```bash
+python -m pip install -e ".[agent]"
+python -c "from agent_app.agent import root_agent; print(root_agent.name, [a.name for a in root_agent.sub_agents])"
+python -m unittest tests.test_agent_architecture -v
+```
+
+The architecture test verifies that:
+
+- the root is an actual `SequentialAgent`;
+- both specialist squads are actual `ParallelAgent` instances;
+- twelve specialists are actual `LlmAgent` instances;
+- every specialist has a unique state `output_key`;
+- SPARK owns the deterministic execution tools;
+- the public topology endpoint matches the runtime hierarchy.
+
+## Run the Google ADK agent
+
+```bash
+python -m pip install -e ".[agent]"
+adk web .
+```
+
+Select `agent_app` in the ADK interface and provide a measurable mission. Configure Gemini through environment variables before a real model run.
+
 ## Autonomous configuration
 
 ```bash
@@ -100,6 +138,7 @@ For multi-instance Cloud Run persistence and distributed locking, use Firestore 
 - `GET /`
 - `GET /health`
 - `GET /readiness`
+- `GET /architecture/agents`
 - `GET /catalog`
 - `GET /missions/reference`
 - `POST /missions/simulate`
@@ -116,14 +155,6 @@ For multi-instance Cloud Run persistence and distributed locking, use Firestore 
 
 A scheduler may send `X-Orpheus-Run-Key` to `/autonomy/cycle` to prevent duplicate execution of the same scheduled run within one persisted runtime state.
 
-## Google ADK agent
-
-```bash
-python -m pip install -e ".[agent]"
-```
-
-The ADK app is in `agent_app/agent.py`. Its `plan_human_benefit` tool now accepts a goal, classifies whether the deterministic mission applies, and returns discovery status instead of inventing technical verification for unsupported objectives.
-
 ## Google Cloud activation
 
 ```powershell
@@ -134,8 +165,8 @@ powershell -ExecutionPolicy Bypass -File deployment/deploy-cloud-run.ps1 -Projec
 powershell -ExecutionPolicy Bypass -File deployment/configure-autonomy-scheduler.ps1 -ProjectId YOUR_PROJECT_ID
 ```
 
-See [`docs/CREDENTIALS_AND_DEPLOYMENT.md`](docs/CREDENTIALS_AND_DEPLOYMENT.md) and [`docs/AUTONOMY.md`](docs/AUTONOMY.md).
+See [`docs/CREDENTIALS_AND_DEPLOYMENT.md`](docs/CREDENTIALS_AND_DEPLOYMENT.md), [`docs/AUTONOMY.md`](docs/AUTONOMY.md), and [`docs/ALL_THINGS_AGENTIC_WIN_PLAN.md`](docs/ALL_THINGS_AGENTIC_WIN_PLAN.md).
 
 ## Core rule
 
-Gemini may propose hypotheses. Deterministic tools and an independent verifier decide whether a technical mission passes. KIRA may automatically complete safe local work. The human decides whether any external or financial action may proceed.
+No agent name, interface card, or model narrative counts as evidence. A claim is allowed to advance only when the relevant tool, source, test, and approval state support it.
