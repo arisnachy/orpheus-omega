@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from fastapi import FastAPI, HTTPException
-    from fastapi.responses import FileResponse
+    from fastapi import FastAPI, Header, HTTPException
+    from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
     from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel, Field
 except ImportError as exc:
@@ -32,10 +32,11 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title="ORPHEUS Ω",
-    version="0.3.0",
+    version="0.4.0",
     description=(
-        "Autonomous invention archaeology, deterministic verification, "
-        "human-benefit planning, and a ChatGPT/Codex-style control interface."
+        "Autonomous invention archaeology with deterministic verification, "
+        "evidence-labelled value planning, human approval gates, and a "
+        "ChatGPT/Codex-style control interface."
     ),
     lifespan=lifespan,
 )
@@ -60,6 +61,11 @@ class BenefitProfileInput(BaseModel):
     preferred_outcomes: list[str] | None = None
 
 
+class ActionDecisionInput(BaseModel):
+    decision: str = Field(pattern="^(approve|decline)$")
+    note: str | None = Field(default=None, max_length=500)
+
+
 @app.get("/", include_in_schema=False)
 def interface() -> FileResponse:
     return FileResponse(WEB_ROOT / "index.html")
@@ -67,7 +73,7 @@ def interface() -> FileResponse:
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "system": "ORPHEUS Ω", "version": "0.3.0"}
+    return {"status": "ok", "system": "ORPHEUS Ω", "version": "0.4.0"}
 
 
 @app.get("/readiness")
@@ -77,6 +83,9 @@ def readiness() -> dict:
         "autostart": runtime.autostart,
         "interval_seconds": runtime.interval_seconds,
         "interface": True,
+        "state_persistence": bool(runtime.state_path),
+        "approval_gates": True,
+        "goal_classification": True,
     }
     return summary
 
@@ -119,22 +128,65 @@ async def autonomy_stop() -> dict[str, Any]:
 
 
 @app.post("/autonomy/cycle")
-async def autonomy_cycle() -> dict[str, Any]:
-    return await runtime.run_cycle("human_requested")
+async def autonomy_cycle(
+    x_orpheus_run_key: str | None = Header(default=None),
+) -> dict[str, Any]:
+    return await runtime.run_cycle(
+        "human_or_scheduler",
+        run_key=x_orpheus_run_key,
+    )
+
+
+@app.post("/autonomy/actions/{action_id}/decision")
+async def autonomy_action_decision(
+    action_id: str,
+    payload: ActionDecisionInput,
+) -> dict[str, Any]:
+    try:
+        return await runtime.decide_action(action_id, payload.decision, payload.note)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.post("/autonomy/approve/{action_id}")
 async def autonomy_approve(action_id: str) -> dict[str, Any]:
+    """Backward-compatible approval endpoint."""
     try:
         return await runtime.approve(action_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.post("/autonomy/profile")
 async def autonomy_profile(payload: BenefitProfileInput) -> dict[str, Any]:
-    profile = payload.model_dump(exclude_none=True)
-    return await runtime.update_profile(profile)
+    return await runtime.update_profile(payload.model_dump(exclude_none=True))
+
+
+@app.get("/autonomy/export/decision.md")
+async def autonomy_export_markdown() -> PlainTextResponse:
+    markdown = await runtime.export_markdown()
+    return PlainTextResponse(
+        markdown,
+        media_type="text/markdown; charset=utf-8",
+        headers={
+            "Content-Disposition": 'attachment; filename="orpheus-decision-brief.md"'
+        },
+    )
+
+
+@app.get("/autonomy/export/state.json")
+async def autonomy_export_state() -> JSONResponse:
+    state = await runtime.snapshot()
+    return JSONResponse(
+        state,
+        headers={
+            "Content-Disposition": 'attachment; filename="orpheus-runtime-state.json"'
+        },
+    )
 
 
 @app.post("/chat")
@@ -145,12 +197,15 @@ async def chat(payload: ChatInput) -> dict[str, Any]:
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
-    plan = state.get("benefit_plan") or {}
-    selected = plan.get("selected_opportunity") or {}
+    brief = state.get("decision_brief") or {}
+    classification = state.get("classification") or {}
     assistant_message = (
-        "Entendido. Convertí tu dirección en un nuevo ciclo autónomo. "
-        f"La oportunidad priorizada es «{selected.get('title', 'en evaluación')}». "
-        "Las tareas locales seguras ya se ejecutaron; las acciones externas o "
-        "financieras quedaron en la cola de aprobación humana."
+        f"Trabajé el objetivo en modo {classification.get('mode', 'evaluación')}. "
+        f"{brief.get('recommendation', 'Preparé el siguiente paso verificable.')} "
+        "Las acciones locales seguras quedaron completadas y cualquier acción "
+        "externa o financiera permanece sujeta a tu aprobación."
     )
-    return {"assistant_message": assistant_message, "state": state}
+    return {
+        "assistant_message": assistant_message,
+        "state": state,
+    }
