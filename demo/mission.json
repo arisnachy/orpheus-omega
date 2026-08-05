@@ -1,0 +1,44 @@
+{
+  "climate": {
+    "ambient_c": 34.0,
+    "relative_humidity": 0.45,
+    "night_sky_delta_c": 9.0
+  },
+  "constraints": {
+    "max_cost_usd": 65.0,
+    "target_max_temperature_c": 24.0,
+    "minimum_cooling_delta_c": 7.0,
+    "require_local_manufacture": true
+  },
+  "candidates": [
+    {
+      "name": "Historical clay pot only",
+      "evaporative_area_m2": 1.1,
+      "thermal_mass_kg": 12,
+      "insulation_r_value": 0.8,
+      "natural_convection_score": 0.45,
+      "estimated_cost_usd": 18,
+      "locally_manufacturable": true
+    },
+    {
+      "name": "Expensive PCM box",
+      "radiative_area_m2": 1.0,
+      "thermal_mass_kg": 4,
+      "phase_change_kg": 8,
+      "insulation_r_value": 4,
+      "estimated_cost_usd": 180,
+      "locally_manufacturable": false
+    },
+    {
+      "name": "ORPHEUS hybrid prototype A",
+      "evaporative_area_m2": 4.1,
+      "radiative_area_m2": 6.0,
+      "thermal_mass_kg": 30,
+      "phase_change_kg": 8.0,
+      "insulation_r_value": 4.0,
+      "natural_convection_score": 1.0,
+      "estimated_cost_usd": 64.0,
+      "locally_manufacturable": true
+    }
+  ]
+}
