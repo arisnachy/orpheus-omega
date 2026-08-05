@@ -98,10 +98,15 @@ def _sanitize_identifier(value: str | None, fallback: str) -> str:
 
 
 def serialize_adk_event(event: Any, *, sequence: int) -> dict[str, Any]:
-    """Create a browser-safe, auditable record from one Google ADK Event."""
+    """Create a browser-safe, auditable record from one Google ADK Event.
+
+    Model reasoning parts marked as ``thought`` are never transmitted. The public
+    trace records only their count, preserving observability without exposing
+    private chain-of-thought content.
+    """
 
     texts: list[str] = []
-    thoughts: list[str] = []
+    thought_parts_count = 0
     tool_calls: list[dict[str, Any]] = []
     tool_results: list[dict[str, Any]] = []
     attachments: list[dict[str, Any]] = []
@@ -109,9 +114,11 @@ def serialize_adk_event(event: Any, *, sequence: int) -> dict[str, Any]:
     content = getattr(event, "content", None)
     for part in list(getattr(content, "parts", None) or []):
         text = getattr(part, "text", None)
-        if text:
-            target = thoughts if bool(getattr(part, "thought", False)) else texts
-            target.append(_truncate(str(text)))
+        is_thought = bool(getattr(part, "thought", False))
+        if text and is_thought:
+            thought_parts_count += 1
+        elif text:
+            texts.append(_truncate(str(text)))
 
         function_call = getattr(part, "function_call", None)
         if function_call is not None:
@@ -152,7 +159,7 @@ def serialize_adk_event(event: Any, *, sequence: int) -> dict[str, Any]:
                 {
                     "kind": "file_data",
                     "mime_type": getattr(file_data, "mime_type", None),
-                    "file_uri": getattr(file_data, "file_uri", None),
+                    "uri_present": bool(getattr(file_data, "file_uri", None)),
                 }
             )
 
@@ -188,7 +195,7 @@ def serialize_adk_event(event: Any, *, sequence: int) -> dict[str, Any]:
         "timestamp": _iso_timestamp(getattr(event, "timestamp", None)),
         "is_final": is_final,
         "texts": texts,
-        "thoughts": thoughts,
+        "thought_parts_count": thought_parts_count,
         "tool_calls": tool_calls,
         "tool_results": tool_results,
         "state_delta": _bounded_payload(state_delta) if state_delta else {},
@@ -237,7 +244,8 @@ class AdkRuntimeBridge:
             "persistence": "in_memory_session_service",
             "truth_boundary": (
                 "This endpoint streams real ADK Runner events only when Gemini or "
-                "Vertex AI is configured. It never simulates an ADK run in mock mode."
+                "Vertex AI is configured. It never simulates an ADK run in mock mode "
+                "and never exposes model chain-of-thought content."
             ),
         }
 
