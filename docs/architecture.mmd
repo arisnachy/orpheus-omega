@@ -1,0 +1,64 @@
+flowchart TB
+    H[Human mission and approval authority]
+    UI[FastAPI control interface]
+    CP[Autonomous control plane]
+    K[KIRA Ω coordinator]
+
+    subgraph FLEET[ORPHEUS Ω agent fleet]
+      O[ORION\nmission contract]
+      V[VIGÍA\ntechnical-history exploration]
+      N[NYX-7\nfailure reconstruction]
+      E[VEGA\nevidence and test design]
+      A[ATLAS-9\nmodern architecture]
+      S[SPARK\ndeterministic simulation]
+      U[AUREUS-7\nbenefit and sustainability paths]
+      B[BASTION\nsafety and authorization]
+      P[ECHO\nprovenance and limitations]
+      R[RIFT / VANTA-0\nalternative routes]
+    end
+
+    GM[Gemini 3.5+]
+    ADK[Google Agent Development Kit]
+    DS[Deterministic tools and independent verifier]
+    ST[(Mission state and provenance)]
+    AQ[(Approval queue)]
+    OBS[Audit events and observability]
+
+    subgraph GCP[Google Cloud]
+      CR[Cloud Run]
+      GC[Cloud Logging / deployment evidence]
+    end
+
+    H -->|objective| UI
+    UI --> CP
+    CP --> K
+    K --> O
+    O --> V
+    V --> N
+    N --> E
+    E --> A
+    A --> S
+    S --> U
+    U --> B
+    B --> P
+    P --> K
+    R -. alternate route .-> O
+    R -. alternate route .-> A
+
+    K <--> ADK
+    ADK <--> GM
+    S --> DS
+    DS -->|pass / reject / uncertainty| K
+
+    CP <--> ST
+    K --> OBS
+    B -->|external or financial action| AQ
+    H -->|approve / reject| AQ
+    AQ --> CP
+
+    UI --> CR
+    CP --> CR
+    CR --> GC
+
+    K -->|verified result and limits| UI
+    UI --> H
