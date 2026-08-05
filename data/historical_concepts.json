@@ -2,31 +2,156 @@
   {
     "id": "evaporative-pot",
     "name": "Porous-vessel evaporative cooling",
-    "limitations": ["humidity", "water use"],
-    "status": "source verification pending"
+    "mechanism": "Water evaporating from a wetted porous shell removes sensible heat from the storage chamber.",
+    "limitations": ["high ambient humidity", "continuous water demand", "solar heat gain", "hygiene and material durability"],
+    "status": "source verified; ORPHEUS design validation pending",
+    "source_verification": "verified",
+    "application_validation": "pending",
+    "evidence_scope": "Primary experiments support the mechanism and climate sensitivity; they do not validate the current ORPHEUS geometry or food-safety claims.",
+    "sources": [
+      {
+        "title": "Design and measured performance of a porous evaporative cooler for preservation of fruits and vegetables",
+        "authors": ["Emmanuel E. Anyanwu"],
+        "year": 2004,
+        "venue": "Energy Conversion and Management",
+        "doi": "10.1016/j.enconman.2003.10.020",
+        "url": "https://doi.org/10.1016/j.enconman.2003.10.020",
+        "evidence_type": "peer-reviewed experimental study",
+        "supports": "Measured a porous clay food cooler and reported chamber temperature depression varying from approximately 0.1 to 12 degrees Celsius, with performance strongly affected by seasonal weather."
+      },
+      {
+        "title": "Evaporative cooler using a porous material to be used for preservation of food",
+        "year": 1994,
+        "venue": "Renewable Energy",
+        "doi": "10.1016/0960-1481(94)90417-0",
+        "url": "https://doi.org/10.1016/0960-1481(94)90417-0",
+        "evidence_type": "peer-reviewed experimental study",
+        "supports": "Tested a wetted charcoal porous cooler and reported a 10 to 13 degrees Celsius reduction from ambient under the tested conditions."
+      }
+    ]
   },
   {
     "id": "night-radiative",
     "name": "Night-sky radiative cooling",
-    "limitations": ["weather", "daytime heat gain"],
-    "status": "source verification pending"
+    "mechanism": "A sky-facing infrared emitter rejects heat through the atmospheric transparency window to a colder effective sky temperature.",
+    "limitations": ["cloud cover", "atmospheric humidity", "restricted sky view", "daytime solar heat gain", "parasitic conduction and convection"],
+    "status": "source verified; ORPHEUS design validation pending",
+    "source_verification": "verified",
+    "application_validation": "pending",
+    "evidence_scope": "Primary experiments support nocturnal cold-storage potential; they do not validate performance in the target climate or the current hybrid design.",
+    "sources": [
+      {
+        "title": "Performance of a heat pipe assisted night sky radiative cooler",
+        "year": 1990,
+        "venue": "Energy Conversion and Management",
+        "doi": "10.1016/0196-8904(90)90041-V",
+        "url": "https://doi.org/10.1016/0196-8904(90)90041-V",
+        "evidence_type": "peer-reviewed experimental study",
+        "supports": "A constructed night-sky refrigerator reached a 12.8 degrees Celsius cold-chamber temperature at 20 degrees Celsius ambient and reported 628 kilojoules per square metre per night under clear skies."
+      },
+      {
+        "title": "Passive directional sub-ambient daytime radiative cooling",
+        "authors": ["Bikram Bhatia", "Arny Leroy", "Yichen Shen", "Lin Zhao", "Melissa Gianello", "Duanhui Li", "Tian Gu", "Juejun Hu", "Marin Soljacic", "Evelyn N. Wang"],
+        "year": 2018,
+        "venue": "Nature Communications",
+        "doi": "10.1038/s41467-018-07293-9",
+        "url": "https://doi.org/10.1038/s41467-018-07293-9",
+        "evidence_type": "peer-reviewed experimental study",
+        "supports": "Demonstrated sub-ambient radiative cooling using low-cost directional shielding, while identifying solar and parasitic heat-control requirements."
+      }
+    ]
   },
   {
     "id": "thermal-mass",
     "name": "Thermal mass buffering",
-    "limitations": ["weight", "slow recovery"],
-    "status": "source verification pending"
+    "mechanism": "A material with substantial heat capacity absorbs transient heat gains and delays or reduces temperature peaks when it can later discharge to a cooler sink.",
+    "limitations": ["weight", "slow thermal recovery", "surface heat-transfer limits", "requires a regeneration period or cooler sink"],
+    "status": "source verified; ORPHEUS design validation pending",
+    "source_verification": "verified",
+    "application_validation": "pending",
+    "evidence_scope": "Experiments support thermal-mass placement and buffering effects; they do not prove that adding mass alone creates refrigeration.",
+    "sources": [
+      {
+        "title": "Thermal storage mass in radiative cooling systems",
+        "year": 1991,
+        "venue": "Building and Environment",
+        "doi": "10.1016/0360-1323(91)90065-J",
+        "url": "https://doi.org/10.1016/0360-1323(91)90065-J",
+        "evidence_type": "peer-reviewed experiment",
+        "supports": "Experimentally found thermal-storage mass and its location significant for obtainable cooling power and internal temperatures in a nocturnal-radiation cooling system."
+      },
+      {
+        "title": "Evaluation of the Passive Cooling Potential of Thermal Mass Inherent in Medium to Large Commercial Buildings",
+        "authors": ["John Nelson", "Gregor Henze"],
+        "year": 2021,
+        "venue": "Journal of Architectural Engineering",
+        "doi": "10.1061/(ASCE)AE.1943-5568.0000460",
+        "url": "https://doi.org/10.1061/(ASCE)AE.1943-5568.0000460",
+        "evidence_type": "peer-reviewed engineering analysis",
+        "supports": "Evaluated passive-cooling potential and emphasized exposed surface area and heat-transfer limits rather than assuming unlimited benefit from greater mass depth."
+      }
+    ]
   },
   {
     "id": "phase-change",
-    "name": "Passive phase-change storage",
-    "limitations": ["cost", "encapsulation"],
-    "status": "source verification pending"
+    "name": "Passive phase-change cold storage",
+    "mechanism": "A charged phase-change material absorbs heat near its melting temperature, buffering a chamber without continuous compressor operation during discharge.",
+    "limitations": ["requires prior charging", "material and encapsulation cost", "finite storage duration", "heat-transfer bottlenecks", "cycle durability"],
+    "status": "source verified; ORPHEUS design validation pending",
+    "source_verification": "verified",
+    "application_validation": "pending",
+    "evidence_scope": "Primary experiments support cold buffering after charging; PCM is energy storage, not an independent source of cold.",
+    "sources": [
+      {
+        "title": "Experimental study on cold storage phase-change materials and quick-freezing plate in household refrigerators",
+        "authors": ["Zhongbao Liu", "Fengfei Lou", "Xin Qi", "Qinghua Wang", "Banghua Zhao", "Jiawen Yan", "Yiyao Shen"],
+        "year": 2019,
+        "venue": "Journal of Food Process Engineering",
+        "doi": "10.1111/jfpe.13279",
+        "url": "https://doi.org/10.1111/jfpe.13279",
+        "evidence_type": "peer-reviewed experimental study",
+        "supports": "Tested a low-temperature PCM plate for food freezing and measured changes in freezing time and water loss compared with reference methods."
+      },
+      {
+        "title": "Investigation on PCM-Based cold storage performance under variable charging temperatures and layout configurations",
+        "year": 2026,
+        "venue": "Energy Conversion and Management: X",
+        "doi": "10.1016/j.ecmx.2026.101854",
+        "url": "https://doi.org/10.1016/j.ecmx.2026.101854",
+        "evidence_type": "open-access peer-reviewed experimental study",
+        "supports": "Experimentally evaluated a passive portable cold-storage chamber with PCM and quantified storage duration, effectiveness, and layout sensitivity."
+      }
+    ]
   },
   {
     "id": "stack-convection",
-    "name": "Natural stack convection",
-    "limitations": ["weak airflow", "orientation"],
-    "status": "source verification pending"
+    "name": "Buoyancy-driven stack ventilation",
+    "mechanism": "Density differences caused by temperature gradients drive air through vertically separated openings or a shaft, enabling heat removal when incoming air is cooler.",
+    "limitations": ["weak temperature differential", "wind interaction", "opening geometry", "orientation and height", "cannot cool below inlet-air temperature without another sink"],
+    "status": "source verified; ORPHEUS design validation pending",
+    "source_verification": "verified",
+    "application_validation": "pending",
+    "evidence_scope": "Full-scale and component experiments support airflow generation and its sensitivity; they do not prove refrigeration or target-chamber performance by themselves.",
+    "sources": [
+      {
+        "title": "Experiments in Natural Ventilation for Passive Cooling",
+        "authors": ["F. Flourentzou", "J. van der Maas", "C.-A. Roulet"],
+        "year": 1996,
+        "venue": "17th AIVC Conference, Gothenburg",
+        "url": "https://www.aivc.org/sites/default/files/AIVC_1996_CP17_Vol1.pdf",
+        "evidence_type": "full-scale experimental conference study",
+        "supports": "Used a naturally ventilated three-level office building to study stack configurations, opening size and position, neutral pressure level, airflow, and night-cooling interaction with building mass."
+      },
+      {
+        "title": "A study on a ventilation stack integrated with a light pipe",
+        "authors": ["Thanyalak Taengchum", "Surapong Chirarattananon", "Robert H. B. Exell", "Kuskana Kubaha", "Pipat Chaiwiwatworakul"],
+        "year": 2013,
+        "venue": "Applied Thermal Engineering",
+        "doi": "10.1016/j.applthermaleng.2012.04.045",
+        "url": "https://doi.org/10.1016/j.applthermaleng.2012.04.045",
+        "evidence_type": "peer-reviewed theoretical and experimental study",
+        "supports": "Measured a buoyancy- and wind-assisted ventilation stack at nearly ten air changes per hour in the experimental room, while documenting dependence on coupled heat-transfer and wind effects."
+      }
+    ]
   }
 ]
