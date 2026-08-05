@@ -12,6 +12,7 @@ try:
 except ImportError as exc:
     raise RuntimeError('Install with: pip install -e ".[api]"') from exc
 
+from orpheus.agent_topology import get_agent_topology
 from orpheus.autonomy import runtime
 from orpheus.models import Climate, Design, MissionConstraints
 from orpheus.pipeline import evaluate_mission
@@ -32,11 +33,11 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title="ORPHEUS Ω",
-    version="0.4.0",
+    version="0.5.0",
     description=(
-        "Autonomous invention archaeology with deterministic verification, "
-        "evidence-labelled value planning, human approval gates, and a "
-        "ChatGPT/Codex-style control interface."
+        "Autonomous invention archaeology with a real Google ADK multi-agent workflow, "
+        "deterministic verification, evidence-labelled value planning, human approval "
+        "gates, and a ChatGPT/Codex-style control interface."
     ),
     lifespan=lifespan,
 )
@@ -73,7 +74,7 @@ def interface() -> FileResponse:
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "system": "ORPHEUS Ω", "version": "0.4.0"}
+    return {"status": "ok", "system": "ORPHEUS Ω", "version": "0.5.0"}
 
 
 @app.get("/readiness")
@@ -86,8 +87,17 @@ def readiness() -> dict:
         "state_persistence": bool(runtime.state_path),
         "approval_gates": True,
         "goal_classification": True,
+        "real_adk_multi_agent": True,
+        "topology_endpoint": "/architecture/agents",
     }
     return summary
+
+
+@app.get("/architecture/agents")
+def architecture_agents() -> dict[str, Any]:
+    """Expose the actual ADK workflow hierarchy without importing cloud credentials."""
+
+    return get_agent_topology()
 
 
 @app.get("/catalog")
