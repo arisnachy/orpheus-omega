@@ -38,10 +38,28 @@ class SettingsAndToolsTests(unittest.TestCase):
             self.assertEqual("mock", response.backend)
             self.assertIn("no model call", response.text)
 
-    def test_catalog_discloses_pending_sources(self):
+    def test_catalog_has_bounded_primary_source_provenance(self):
         catalog = list_historical_concepts()
-        self.assertGreaterEqual(catalog["count"], 3)
-        self.assertTrue(catalog["source_verification_pending"])
+
+        self.assertEqual(catalog["count"], 5)
+        self.assertGreaterEqual(catalog["source_count"], 10)
+        self.assertTrue(catalog["provenance_complete"])
+        self.assertFalse(catalog["source_verification_pending"])
+        self.assertEqual(
+            set(catalog["application_validation_pending"]),
+            {concept["id"] for concept in catalog["concepts"]},
+        )
+
+        for concept in catalog["concepts"]:
+            self.assertEqual(concept["source_verification"], "verified")
+            self.assertEqual(concept["application_validation"], "pending")
+            self.assertTrue(concept["evidence_scope"])
+            self.assertGreaterEqual(len(concept["sources"]), 2)
+            for source in concept["sources"]:
+                self.assertTrue(source["title"])
+                self.assertTrue(source["url"].startswith("https://"))
+                self.assertTrue(source["evidence_type"])
+                self.assertTrue(source["supports"])
 
     def test_reference_mission_is_verified(self):
         result = run_reference_mission()
