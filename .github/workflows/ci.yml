@@ -52,6 +52,20 @@ jobs:
       - name: Compile all Python modules
         run: python -m compileall -q app agent_app orpheus scripts tests
 
+      - name: Validate web JavaScript
+        run: node --check web/app.js
+
+      - name: Verify web asset references
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          html = Path('web/index.html').read_text(encoding='utf-8')
+          for asset in ('/assets/app.css', '/assets/app.js'):
+              if asset not in html:
+                  raise SystemExit(f'missing web asset reference: {asset}')
+          print('web asset references: OK')
+          PY
+
       - name: Publish machine-readable commit status
         if: always()
         env:
