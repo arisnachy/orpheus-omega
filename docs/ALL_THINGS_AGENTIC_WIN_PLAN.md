@@ -37,8 +37,12 @@ Evidence now present in the repository:
 - Twelve specialist `LlmAgent` instances.
 - Two actual `ParallelAgent` squads.
 - Unique ADK `output_key` state channels.
+- Live `Runner.run_async()` event streaming through FastAPI.
+- NDJSON trace of visible model output, tool calls, tool results, state changes, completion, and errors.
+- A strict mock-mode gate that refuses to fabricate cloud-agent execution.
+- Trace privacy controls that suppress model thought text, binaries, and file URIs.
 - Gemini 3.5+ configuration for hypothesis generation and technical reasoning.
-- FastAPI control plane.
+- FastAPI deterministic control plane.
 - Long-running autonomous cycles with start, pause, resume, and manual trigger.
 - Persistent mission state and provenance.
 - Deterministic simulation separated from model reasoning.
@@ -54,12 +58,12 @@ Evidence now present in the repository:
 The four-minute demo should be one continuous story:
 
 - 0:00–0:25 — The problem: useful inventions can die because they arrived before enabling technology.
-- 0:25–0:50 — Start the passive-cooling mission from the live interface.
-- 0:50–1:40 — Show the real autonomous agent timeline and intermediate decisions.
-- 1:40–2:25 — Show one candidate rejected by deterministic evidence and the final candidate selected.
-- 2:25–3:05 — Show beneficiary and monetization hypotheses plus the approval queue.
-- 3:05–3:35 — Show the actual ADK hierarchy, source provenance, and safety boundaries.
-- 3:35–4:00 — Show Cloud Run evidence, repository, tests, and reproducible setup.
+- 0:25–0:50 — Start the passive-cooling mission from `/adk` on the deployed service.
+- 0:50–1:40 — Show the real ADK events arriving from ORION, the parallel evidence squad, ATLAS-9, SPARK, the decision squad, and KIRA.
+- 1:40–2:25 — Show SPARK's deterministic tool call, one rejected candidate, and the selected candidate.
+- 2:25–3:05 — Move to `/` and show beneficiary and monetization hypotheses plus the approval queue.
+- 3:05–3:35 — Show the actual ADK hierarchy, source provenance, trace privacy, and safety boundaries.
+- 3:35–4:00 — Show Cloud Run evidence, repository, green verification, and reproducible setup.
 
 ## Required submission evidence
 
@@ -75,7 +79,7 @@ The four-minute demo should be one continuous story:
 
 Do not claim field validation, CFD validation, food-safety approval, patent clearance, measured customer demand, confirmed pricing, confirmed grants, confirmed customers, or guaranteed revenue unless real evidence is added.
 
-A source can verify a bounded mechanism-level claim without validating the current ORPHEUS design. Gemini may propose hypotheses. Deterministic tools and an independent verifier decide whether a technical mission passes. The human approves external communication, contracting, publication, payment, and irreversible actions.
+A source can verify a bounded mechanism-level claim without validating the current ORPHEUS design. Gemini may propose hypotheses. Deterministic tools and an independent verifier decide whether a technical mission passes. The public event trace shows actions and evidence, never private chain-of-thought. The human approves external communication, contracting, publication, payment, and irreversible actions.
 
 ## Completed milestones
 
@@ -85,11 +89,14 @@ A source can verify a bounded mechanism-level claim without validating the curre
 4. Added a public machine-readable architecture endpoint.
 5. Replaced all five historical source placeholders with bounded primary or peer-reviewed engineering provenance.
 6. Added catalog integrity checks that distinguish source verification from application validation.
-7. Updated the public Devpost project to match the repository's real implementation and remaining proof.
+7. Added a real ADK Runner bridge with complete event consumption.
+8. Added a light `/adk` console for live agent and tool traces.
+9. Added tests proving that mock mode cannot impersonate a real run and private thought text cannot enter the trace.
+10. Updated the public Devpost project to match the repository's real implementation and remaining proof.
 
 ## Immediate blockers before submission
 
-1. Stream real ADK execution events into the same FastAPI control interface.
+1. Execute `/adk` against a real Gemini or Vertex backend and preserve the trace as demo evidence.
 2. Produce and commit the final architecture diagram as PNG or PDF.
 3. Deploy once to Google Cloud and preserve visible proof.
 4. Record the continuous demo video.
