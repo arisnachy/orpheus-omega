@@ -1,0 +1,22 @@
+{
+  "eval_cases": [
+    {
+      "name": "requires_verification_before_success",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Run the reference mission and tell me whether it passed."
+        }
+      ]
+    },
+    {
+      "name": "discloses_unverified_catalog",
+      "messages": [
+        {
+          "role": "user",
+          "content": "List the historical concepts and distinguish verified evidence from pending placeholders."
+        }
+      ]
+    }
+  ]
+}

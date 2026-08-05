@@ -1,0 +1,5 @@
+name: orpheus-omega
+agent_directory: agent_app
+create_params:
+  deployment_target: cloud_run
+  session_type: in_memory

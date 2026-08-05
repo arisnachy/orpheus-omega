@@ -1,29 +1,36 @@
-ORPHEUS Ω INITIAL VERIFICATION
-Date: 2026-08-04 (America/Santo_Domingo)
+ORPHEUS Ω — Credential-ready validation
+Date: 2026-08-05
 
-COMMAND
-python -m unittest discover -s tests -v
+LOCAL VALIDATION
+- Unit tests discovered: 11
+- Passed: 10
+- Skipped: 1
+- Failed: 0
+- Skipped test: live google-adk import contract
+- Skip reason: the execution environment's private package mirror does not expose google-adk
 
-RESULT
-5 tests passed:
-- test_humidity_hurts_evaporation
-- test_hybrid_can_win
-- test_over_budget_rejected
-- test_requires_candidate
-- test_weak_design_rejected
+DETERMINISTIC REFERENCE MISSION
+- Status: CUMPLIDA
+- Winner: ORPHEUS hybrid prototype A
+- Independent verification: approved
+- Estimated internal temperature: 21.58 C
+- Cooling delta: 12.42 C
+- Reported uncertainty: 2.40 C
+- Estimated cost: USD 64
+- External energy: 0.0 kWh/hour
 
-COMMAND
-python scripts/run_demo.py
+STATIC VALIDATION
+- Python compileall: passed for app, agent_app, orpheus, scripts, and tests
+- Offline/mock provider: passed; no external model call made
+- Vertex AI readiness validation: passed; missing project is rejected explicitly
+- Catalog disclosure: passed; unverified historical placeholders remain visibly marked
 
-RESULT
-mission_status: CUMPLIDA
-winner: ORPHEUS hybrid prototype A
-estimated_internal_c: 21.58
-cooling_delta_c: 12.42
-uncertainty_c: 2.40
-hourly_energy_kwh: 0.0
-estimated_cost_usd: 64.0
-verification: MISSION VERIFIED
+REMOTE VALIDATION CONFIGURED
+GitHub Actions installs the complete [all] dependency set, including google-adk and google-genai, then:
+1. runs all unit tests;
+2. imports and validates the ADK app contract;
+3. runs the reproducible mission;
+4. compiles all Python modules.
 
 LIMITATIONS
-These results come from a simplified deterministic simulation. They are not field validation, food-safety certification, CFD validation, patent clearance, or proof of manufacturability at scale.
+This evidence does not claim a successful real Vertex AI request or Cloud Run deployment. Those require a redeemed credit/billing-enabled Google Cloud project, valid account authentication, enabled APIs, and actual cloud execution.

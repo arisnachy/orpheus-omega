@@ -2,4 +2,11 @@ __pycache__/
 *.py[cod]
 .venv/
 .env
+.env.*
+!.env.example
 *.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+service-account*.json
+credentials*.json
