@@ -77,14 +77,46 @@ def runtime_readiness() -> dict[str, Any]:
     return Settings.from_env().public_summary()
 
 
-def plan_human_benefit(profile: dict[str, Any] | None = None) -> dict[str, Any]:
-    """Generate a verified benefit, opportunity, and monetization plan.
+def plan_human_benefit(
+    goal: str | None = None,
+    profile: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Generate an evidence-labelled benefit and monetization plan.
 
-    The returned prices and routes are planning hypotheses, not confirmed demand.
-    Safe local work is marked completed; outreach, publication, contracting, and
-    financial actions remain behind an explicit human approval gate.
+    Only the passive food-cooling mission currently has a deterministic simulator.
+    Other goals return discovery status instead of inheriting a false verification.
+    Prices and routes remain hypotheses; external and financial actions are gated.
     """
 
-    from .autonomy import build_opportunity_plan
+    from .autonomy import build_opportunity_plan, classify_goal
 
-    return build_opportunity_plan(run_reference_mission(), profile)
+    resolved_goal = goal or (
+        "Diseñar una solución asequible y sin electricidad para conservar "
+        "alimentos mediante enfriamiento pasivo."
+    )
+    classification = classify_goal(resolved_goal)
+    if classification["supported"]:
+        mission_result = run_reference_mission()
+    else:
+        mission_result = {
+            "mission_status": "DESCUBRIMIENTO",
+            "winner": None,
+            "ranked_candidates": [],
+            "goal": resolved_goal,
+            "verification": {
+                "approved": False,
+                "reason": (
+                    "No existe todavía una herramienta determinista específica "
+                    "para este objetivo."
+                ),
+            },
+        }
+
+    plan = build_opportunity_plan(
+        mission_result,
+        profile=profile,
+        classification=classification,
+    )
+    plan["classification"] = classification
+    plan["mission_status"] = mission_result["mission_status"]
+    return plan
