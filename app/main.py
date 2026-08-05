@@ -1,17 +1,25 @@
 from __future__ import annotations
 
+import json
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 try:
     from fastapi import FastAPI, Header, HTTPException
-    from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
+    from fastapi.responses import (
+        FileResponse,
+        JSONResponse,
+        PlainTextResponse,
+        StreamingResponse,
+    )
     from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel, Field
 except ImportError as exc:
     raise RuntimeError('Install with: pip install -e ".[api]"') from exc
 
+from orpheus.adk_bridge import adk_runtime
 from orpheus.agent_topology import get_agent_topology
 from orpheus.autonomy import runtime
 from orpheus.models import Climate, Design, MissionConstraints
@@ -36,8 +44,8 @@ app = FastAPI(
     version="0.5.0",
     description=(
         "Autonomous invention archaeology with a real Google ADK multi-agent workflow, "
-        "deterministic verification, evidence-labelled value planning, human approval "
-        "gates, and a ChatGPT/Codex-style control interface."
+        "live Runner event streaming, deterministic verification, evidence-labelled "
+        "value planning, human approval gates, and a ChatGPT/Codex-style control interface."
     ),
     lifespan=lifespan,
 )
@@ -53,6 +61,12 @@ class MissionInput(BaseModel):
 
 class ChatInput(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
+
+
+class AdkMissionInput(BaseModel):
+    goal: str = Field(min_length=1, max_length=4000)
+    user_id: str | None = Field(default=None, max_length=120)
+    session_id: str | None = Field(default=None, max_length=120)
 
 
 class BenefitProfileInput(BaseModel):
@@ -72,6 +86,13 @@ def interface() -> FileResponse:
     return FileResponse(WEB_ROOT / "index.html")
 
 
+@app.get("/adk", include_in_schema=False)
+def adk_interface() -> FileResponse:
+    """Serve the real Google ADK event-trace console."""
+
+    return FileResponse(WEB_ROOT / "adk.html")
+
+
 @app.get("/health")
 def health() -> dict:
     return {"status": "ok", "system": "ORPHEUS Ω", "version": "0.5.0"}
@@ -89,7 +110,11 @@ def readiness() -> dict:
         "goal_classification": True,
         "real_adk_multi_agent": True,
         "topology_endpoint": "/architecture/agents",
+        "live_adk_interface": "/adk",
+        "live_adk_readiness": "/adk/readiness",
+        "live_adk_stream": "/adk/stream",
     }
+    summary["adk_runner"] = adk_runtime.readiness()
     return summary
 
 
@@ -98,6 +123,75 @@ def architecture_agents() -> dict[str, Any]:
     """Expose the actual ADK workflow hierarchy without importing cloud credentials."""
 
     return get_agent_topology()
+
+
+@app.get("/adk/readiness")
+def adk_readiness() -> dict[str, Any]:
+    """Report whether a real Gemini or Vertex-backed ADK run can start."""
+
+    return adk_runtime.readiness()
+
+
+@app.post("/adk/run")
+async def adk_run(payload: AdkMissionInput) -> dict[str, Any]:
+    """Execute one complete real ADK invocation and return its auditable event list."""
+
+    state = adk_runtime.readiness()
+    if not state["ready"]:
+        raise HTTPException(status_code=503, detail="; ".join(state["validation_errors"]))
+    try:
+        return await adk_runtime.run(
+            payload.goal,
+            user_id=payload.user_id,
+            session_id=payload.session_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.post("/adk/stream")
+async def adk_stream(payload: AdkMissionInput) -> StreamingResponse:
+    """Stream every real ADK Runner event as newline-delimited JSON.
+
+    The readiness gate runs before response headers are sent. Runtime failures that
+    occur after streaming starts are emitted as explicit error events rather than
+    being disguised as a successful agent response.
+    """
+
+    state = adk_runtime.readiness()
+    if not state["ready"]:
+        raise HTTPException(status_code=503, detail="; ".join(state["validation_errors"]))
+
+    async def event_stream():
+        try:
+            async for record in adk_runtime.stream(
+                payload.goal,
+                user_id=payload.user_id,
+                session_id=payload.session_id,
+            ):
+                yield json.dumps(record, ensure_ascii=False, default=str) + "\n"
+        except Exception as exc:  # The stream must preserve an auditable failure.
+            error_record = {
+                "kind": "error",
+                "author": "ORPHEUS",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "is_final": False,
+                "error_code": type(exc).__name__,
+                "error_message": str(exc)[:2000],
+                "message": "The real ADK invocation failed before completion.",
+            }
+            yield json.dumps(error_record, ensure_ascii=False) + "\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="application/x-ndjson",
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @app.get("/catalog")
