@@ -41,11 +41,12 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title="ORPHEUS Ω",
-    version="0.5.0",
+    version="0.9.0",
     description=(
         "Autonomous invention archaeology with a real Google ADK multi-agent workflow, "
-        "live Runner event streaming, deterministic verification, evidence-labelled "
-        "value planning, human approval gates, and a ChatGPT/Codex-style control interface."
+        "FORJA engineering contracts, RECURSOR evolutionary auditing, NEMESIS lawful "
+        "falsification, HELIX evidence-only scoring, deterministic verification, human "
+        "approval gates, and a light ChatGPT/Codex-style mission interface."
     ),
     lifespan=lifespan,
 )
@@ -95,7 +96,7 @@ def adk_interface() -> FileResponse:
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "system": "ORPHEUS Ω", "version": "0.5.0"}
+    return {"status": "ok", "system": "ORPHEUS Ω", "version": "0.9.0"}
 
 
 @app.get("/readiness")
@@ -109,6 +110,12 @@ def readiness() -> dict:
         "approval_gates": True,
         "goal_classification": True,
         "real_adk_multi_agent": True,
+        "specialist_agents": 18,
+        "parallel_groups": 4,
+        "forja_engineering": True,
+        "evolutionary_audit": True,
+        "lawful_adversarial_review": True,
+        "evidence_only_scorecard": True,
         "topology_endpoint": "/architecture/agents",
         "live_adk_interface": "/adk",
         "live_adk_readiness": "/adk/readiness",
