@@ -43,6 +43,7 @@ jobs:
           python -c "import google.adk; print('google-adk import: OK')"
           python -c "from agent_app.agent import app, root_agent; print(app.name, root_agent.name, len(root_agent.sub_agents))"
           python -c "from orpheus.agent_topology import get_agent_topology; topology = get_agent_topology(); print(topology['framework'], topology['specialist_agent_count'])"
+          python -c "from app.main import adk_readiness; state = adk_readiness(); assert not state['ready']; assert state['backend'] == 'mock'; print('honest mock-mode ADK gate: OK')"
 
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
@@ -54,16 +55,23 @@ jobs:
         run: python -m compileall -q app agent_app orpheus scripts tests
 
       - name: Validate web JavaScript
-        run: node --check web/app.js
+        run: |
+          node --check web/app.js
+          node --check web/adk.js
 
       - name: Verify web asset references
         run: |
           python - <<'PY'
           from pathlib import Path
-          html = Path('web/index.html').read_text(encoding='utf-8')
-          for asset in ('/assets/app.css', '/assets/app.js'):
-              if asset not in html:
-                  raise SystemExit(f'missing web asset reference: {asset}')
+          expected = {
+              'web/index.html': ('/assets/app.css', '/assets/app.js'),
+              'web/adk.html': ('/assets/adk.js',),
+          }
+          for filename, assets in expected.items():
+              html = Path(filename).read_text(encoding='utf-8')
+              for asset in assets:
+                  if asset not in html:
+                      raise SystemExit(f'missing web asset reference in {filename}: {asset}')
           print('web asset references: OK')
           PY
 
