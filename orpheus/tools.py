@@ -75,3 +75,16 @@ def runtime_readiness() -> dict[str, Any]:
     """Report configuration readiness without exposing any secret values."""
 
     return Settings.from_env().public_summary()
+
+
+def plan_human_benefit(profile: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Generate a verified benefit, opportunity, and monetization plan.
+
+    The returned prices and routes are planning hypotheses, not confirmed demand.
+    Safe local work is marked completed; outreach, publication, contracting, and
+    financial actions remain behind an explicit human approval gate.
+    """
+
+    from .autonomy import build_opportunity_plan
+
+    return build_opportunity_plan(run_reference_mission(), profile)

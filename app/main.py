@@ -1,17 +1,46 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
+from pathlib import Path
+from typing import Any
+
 try:
     from fastapi import FastAPI, HTTPException
-    from pydantic import BaseModel
+    from fastapi.responses import FileResponse
+    from fastapi.staticfiles import StaticFiles
+    from pydantic import BaseModel, Field
 except ImportError as exc:
     raise RuntimeError('Install with: pip install -e ".[api]"') from exc
 
+from orpheus.autonomy import runtime
 from orpheus.models import Climate, Design, MissionConstraints
 from orpheus.pipeline import evaluate_mission
 from orpheus.settings import Settings
 from orpheus.tools import list_historical_concepts, run_reference_mission
 
-app = FastAPI(title="ORPHEUS Ω", version="0.2.0")
+ROOT = Path(__file__).resolve().parents[1]
+WEB_ROOT = ROOT / "web"
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    if runtime.autostart:
+        await runtime.start()
+    yield
+    await runtime.shutdown()
+
+
+app = FastAPI(
+    title="ORPHEUS Ω",
+    version="0.3.0",
+    description=(
+        "Autonomous invention archaeology, deterministic verification, "
+        "human-benefit planning, and a ChatGPT/Codex-style control interface."
+    ),
+    lifespan=lifespan,
+)
+
+app.mount("/assets", StaticFiles(directory=WEB_ROOT), name="assets")
 
 
 class MissionInput(BaseModel):
@@ -20,14 +49,36 @@ class MissionInput(BaseModel):
     constraints: dict
 
 
+class ChatInput(BaseModel):
+    message: str = Field(min_length=1, max_length=4000)
+
+
+class BenefitProfileInput(BaseModel):
+    human: str | None = Field(default=None, max_length=180)
+    objective: str | None = Field(default=None, max_length=1500)
+    beneficiaries: list[str] | None = None
+    preferred_outcomes: list[str] | None = None
+
+
+@app.get("/", include_in_schema=False)
+def interface() -> FileResponse:
+    return FileResponse(WEB_ROOT / "index.html")
+
+
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "system": "ORPHEUS Ω", "version": "0.2.0"}
+    return {"status": "ok", "system": "ORPHEUS Ω", "version": "0.3.0"}
 
 
 @app.get("/readiness")
 def readiness() -> dict:
-    return Settings.from_env().public_summary()
+    summary = Settings.from_env().public_summary()
+    summary["autonomy"] = {
+        "autostart": runtime.autostart,
+        "interval_seconds": runtime.interval_seconds,
+        "interface": True,
+    }
+    return summary
 
 
 @app.get("/catalog")
@@ -50,3 +101,56 @@ def simulate(payload: MissionInput) -> dict:
         )
     except (TypeError, ValueError) as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.get("/autonomy/state")
+async def autonomy_state() -> dict[str, Any]:
+    return await runtime.snapshot()
+
+
+@app.post("/autonomy/start")
+async def autonomy_start() -> dict[str, Any]:
+    return await runtime.start()
+
+
+@app.post("/autonomy/stop")
+async def autonomy_stop() -> dict[str, Any]:
+    return await runtime.stop()
+
+
+@app.post("/autonomy/cycle")
+async def autonomy_cycle() -> dict[str, Any]:
+    return await runtime.run_cycle("human_requested")
+
+
+@app.post("/autonomy/approve/{action_id}")
+async def autonomy_approve(action_id: str) -> dict[str, Any]:
+    try:
+        return await runtime.approve(action_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/autonomy/profile")
+async def autonomy_profile(payload: BenefitProfileInput) -> dict[str, Any]:
+    profile = payload.model_dump(exclude_none=True)
+    return await runtime.update_profile(profile)
+
+
+@app.post("/chat")
+async def chat(payload: ChatInput) -> dict[str, Any]:
+    try:
+        await runtime.set_goal(payload.message)
+        state = await runtime.run_cycle("new_human_direction")
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+    plan = state.get("benefit_plan") or {}
+    selected = plan.get("selected_opportunity") or {}
+    assistant_message = (
+        "Entendido. Convertí tu dirección en un nuevo ciclo autónomo. "
+        f"La oportunidad priorizada es «{selected.get('title', 'en evaluación')}». "
+        "Las tareas locales seguras ya se ejecutaron; las acciones externas o "
+        "financieras quedaron en la cola de aprobación humana."
+    )
+    return {"assistant_message": assistant_message, "state": state}
