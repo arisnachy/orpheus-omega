@@ -14,6 +14,8 @@ $Environment = @(
     "ORPHEUS_RUNTIME_MODE=google_cloud",
     "ORPHEUS_LLM_BACKEND=vertex_ai",
     "ORPHEUS_MODEL=gemini-3.6-flash",
+    "ORPHEUS_AUTONOMY_ENABLED=false",
+    "ORPHEUS_AUTONOMY_INTERVAL_SECONDS=300",
     "GOOGLE_GENAI_USE_VERTEXAI=true",
     "GOOGLE_CLOUD_PROJECT=$ProjectId",
     "GOOGLE_CLOUD_LOCATION=global",
@@ -39,4 +41,5 @@ gcloud run deploy $ServiceName `
     --max-instances=3 `
     $AccessFlag
 
-Write-Host "Deployment complete. Verify /health, /readiness, and /missions/reference."
+Write-Host "Deployment complete. Verify /, /health, /readiness, and /missions/reference."
+Write-Host "For serverless autonomy, run deployment/configure-autonomy-scheduler.ps1 after deployment."
