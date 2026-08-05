@@ -1,0 +1,32 @@
+[
+  {
+    "id": "evaporative-pot",
+    "name": "Porous-vessel evaporative cooling",
+    "limitations": ["humidity", "water use"],
+    "status": "source verification pending"
+  },
+  {
+    "id": "night-radiative",
+    "name": "Night-sky radiative cooling",
+    "limitations": ["weather", "daytime heat gain"],
+    "status": "source verification pending"
+  },
+  {
+    "id": "thermal-mass",
+    "name": "Thermal mass buffering",
+    "limitations": ["weight", "slow recovery"],
+    "status": "source verification pending"
+  },
+  {
+    "id": "phase-change",
+    "name": "Passive phase-change storage",
+    "limitations": ["cost", "encapsulation"],
+    "status": "source verification pending"
+  },
+  {
+    "id": "stack-convection",
+    "name": "Natural stack convection",
+    "limitations": ["weak airflow", "orientation"],
+    "status": "source verification pending"
+  }
+]
