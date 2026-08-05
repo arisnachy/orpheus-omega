@@ -1,0 +1,29 @@
+ORPHEUS Ω INITIAL VERIFICATION
+Date: 2026-08-04 (America/Santo_Domingo)
+
+COMMAND
+python -m unittest discover -s tests -v
+
+RESULT
+5 tests passed:
+- test_humidity_hurts_evaporation
+- test_hybrid_can_win
+- test_over_budget_rejected
+- test_requires_candidate
+- test_weak_design_rejected
+
+COMMAND
+python scripts/run_demo.py
+
+RESULT
+mission_status: CUMPLIDA
+winner: ORPHEUS hybrid prototype A
+estimated_internal_c: 21.58
+cooling_delta_c: 12.42
+uncertainty_c: 2.40
+hourly_energy_kwh: 0.0
+estimated_cost_usd: 64.0
+verification: MISSION VERIFIED
+
+LIMITATIONS
+These results come from a simplified deterministic simulation. They are not field validation, food-safety certification, CFD validation, patent clearance, or proof of manufacturability at scale.
