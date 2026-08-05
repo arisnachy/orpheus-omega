@@ -41,7 +41,8 @@ jobs:
       - name: Verify ADK dependency and application import
         run: |
           python -c "import google.adk; print('google-adk import: OK')"
-          python -c "from agent_app.agent import app, root_agent; print(app.name, root_agent.name, len(root_agent.tools))"
+          python -c "from agent_app.agent import app, root_agent; print(app.name, root_agent.name, len(root_agent.sub_agents))"
+          python -c "from orpheus.agent_topology import get_agent_topology; topology = get_agent_topology(); print(topology['framework'], topology['specialist_agent_count'])"
 
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
