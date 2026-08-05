@@ -3,188 +3,140 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ORPHEUS Ω · Live ADK Trace</title>
-  <style>
-    :root {
-      color-scheme: light;
-      --bg: #f7f8fb;
-      --panel: rgba(255, 255, 255, 0.92);
-      --line: #e3e7ef;
-      --text: #172033;
-      --muted: #667085;
-      --accent: #475b78;
-      --accent-soft: #edf1f7;
-      --success: #147d64;
-      --warning: #a26409;
-      --danger: #b42318;
-      --shadow: 0 20px 60px rgba(35, 48, 74, 0.08);
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 8% 0%, rgba(91, 115, 151, .12), transparent 34rem),
-        radial-gradient(circle at 95% 8%, rgba(86, 154, 135, .10), transparent 28rem),
-        var(--bg);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-    button, textarea, input { font: inherit; }
-    .shell { max-width: 1480px; margin: 0 auto; padding: 24px; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 22px; }
-    .brand { display: flex; align-items: center; gap: 13px; }
-    .mark { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 13px; background: var(--text); color: white; font-weight: 750; letter-spacing: -.04em; }
-    .brand h1 { margin: 0; font-size: 18px; letter-spacing: -.02em; }
-    .brand p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
-    .back { color: var(--accent); text-decoration: none; font-weight: 650; font-size: 14px; }
-    .grid { display: grid; grid-template-columns: minmax(320px, 430px) minmax(0, 1fr); gap: 20px; align-items: start; }
-    .panel { background: var(--panel); border: 1px solid rgba(227, 231, 239, .9); border-radius: 22px; box-shadow: var(--shadow); backdrop-filter: blur(16px); }
-    .control { padding: 22px; position: sticky; top: 20px; }
-    .eyebrow { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); font-weight: 750; }
-    h2 { margin: 8px 0 8px; font-size: 25px; letter-spacing: -.035em; line-height: 1.12; }
-    .lead { color: var(--muted); line-height: 1.55; margin: 0 0 20px; font-size: 14px; }
-    .readiness { border: 1px solid var(--line); border-radius: 16px; padding: 14px; background: #fff; margin-bottom: 18px; }
-    .ready-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .pill { display: inline-flex; align-items: center; gap: 7px; border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 800; letter-spacing: .04em; background: #fff3e1; color: var(--warning); }
-    .pill.ready { background: #e8f5f1; color: var(--success); }
-    .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
-    .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-    .fact { padding: 10px; background: var(--accent-soft); border-radius: 11px; min-width: 0; }
-    .fact span { display: block; color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; }
-    .fact strong { display: block; margin-top: 4px; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .errors { margin: 12px 0 0; padding-left: 18px; color: var(--warning); font-size: 12px; line-height: 1.45; }
-    label { display: block; margin: 15px 0 7px; font-size: 12px; font-weight: 750; }
-    textarea, input { width: 100%; border: 1px solid var(--line); background: white; color: var(--text); border-radius: 13px; outline: none; transition: .18s ease; }
-    textarea { min-height: 148px; resize: vertical; padding: 14px; line-height: 1.5; }
-    input { height: 43px; padding: 0 12px; }
-    textarea:focus, input:focus { border-color: #8fa0b8; box-shadow: 0 0 0 4px rgba(71, 91, 120, .09); }
-    .ids { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .actions { display: flex; gap: 10px; margin-top: 16px; }
-    .button { border: 0; border-radius: 12px; height: 44px; padding: 0 16px; font-weight: 750; cursor: pointer; transition: .18s ease; }
-    .button.primary { background: var(--text); color: white; flex: 1; }
-    .button.secondary { background: var(--accent-soft); color: var(--accent); }
-    .button:hover:not(:disabled) { transform: translateY(-1px); }
-    .button:disabled { opacity: .48; cursor: not-allowed; }
-    .truth { margin-top: 16px; padding: 12px; border-radius: 13px; background: #fbfcfe; border: 1px dashed var(--line); color: var(--muted); font-size: 11px; line-height: 1.45; }
-    .trace { min-height: 720px; overflow: hidden; }
-    .trace-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 20px 22px; border-bottom: 1px solid var(--line); }
-    .trace-head h3 { margin: 0; font-size: 15px; }
-    .trace-head p { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
-    .counter { min-width: 92px; text-align: right; color: var(--muted); font-size: 12px; }
-    .timeline { padding: 20px 22px 28px; display: grid; gap: 12px; }
-    .empty { min-height: 560px; display: grid; place-items: center; text-align: center; color: var(--muted); padding: 36px; }
-    .empty strong { color: var(--text); display: block; margin-bottom: 8px; font-size: 16px; }
-    .event { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; position: relative; }
-    .event:not(:last-child)::before { content: ""; position: absolute; left: 16px; top: 34px; bottom: -13px; width: 1px; background: var(--line); }
-    .event-icon { position: relative; z-index: 1; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 850; }
-    .event.tool_call .event-icon { background: #fff3e1; color: var(--warning); }
-    .event.tool_result .event-icon { background: #e8f5f1; color: var(--success); }
-    .event.final .event-icon, .event.complete .event-icon { background: var(--text); color: white; }
-    .event.error .event-icon { background: #feeceb; color: var(--danger); }
-    .event-card { min-width: 0; border: 1px solid var(--line); border-radius: 15px; background: white; padding: 13px 14px; }
-    .event-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
-    .event-meta strong { font-size: 12px; }
-    .event-meta span { color: var(--muted); font-size: 10px; }
-    .kind { display: inline-flex; margin-left: 7px; padding: 3px 6px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); text-transform: uppercase; letter-spacing: .06em; font-size: 9px; font-weight: 800; }
-    .text-block { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 13px; line-height: 1.55; margin: 0; }
-    .tool { margin-top: 8px; border-radius: 11px; background: #f8fafc; padding: 10px; overflow: hidden; }
-    .tool strong { display: block; font-size: 11px; margin-bottom: 5px; }
-    pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: #475467; font: 11px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; }
-    .final-output { margin: 0 22px 22px; border: 1px solid #c9d4e3; background: linear-gradient(145deg, #f7f9fc, #fff); border-radius: 17px; padding: 18px; display: none; }
-    .final-output.visible { display: block; }
-    .final-output h4 { margin: 0 0 10px; font-size: 13px; }
-    .final-output div { white-space: pre-wrap; line-height: 1.6; font-size: 14px; }
-    @media (max-width: 900px) {
-      .shell { padding: 15px; }
-      .grid { grid-template-columns: 1fr; }
-      .control { position: static; }
-      .trace { min-height: 560px; }
-      .empty { min-height: 340px; }
-    }
-    @media (max-width: 540px) {
-      .topbar { align-items: flex-start; }
-      .ids, .facts { grid-template-columns: 1fr; }
-      .actions { flex-direction: column; }
-      .button { width: 100%; }
-    }
-  </style>
+  <meta name="description" content="ORPHEUS Ω — chat autónomo con traza real de Google ADK">
+  <title>ORPHEUS Ω · Mission Chat</title>
+  <link rel="stylesheet" href="/assets/adk.css">
 </head>
 <body>
-  <main class="shell">
-    <header class="topbar">
+  <div class="app">
+    <aside class="left-rail">
       <div class="brand">
-        <div class="mark">Ω</div>
+        <div class="brand-mark">Ω</div>
         <div>
-          <h1>ORPHEUS Ω</h1>
-          <p>Live Google ADK execution trace</p>
+          <strong>ORPHEUS Ω</strong>
+          <span>Autonomous Mission System · v0.9</span>
         </div>
       </div>
-      <a class="back" href="/">← Volver al control autónomo</a>
-    </header>
 
-    <section class="grid">
-      <aside class="panel control">
-        <div class="eyebrow">Ejecución verificable</div>
-        <h2>Observa al equipo real, evento por evento.</h2>
-        <p class="lead">Esta consola consume directamente el flujo de <code>Runner.run_async()</code>. No genera eventos falsos cuando Gemini o Vertex AI no están configurados.</p>
+      <button id="newMission" class="new-mission" type="button"><span>＋</span>Nueva misión</button>
 
-        <div class="readiness">
-          <div class="ready-head">
-            <strong>Estado del Runner</strong>
-            <span id="readyPill" class="pill"><i class="dot"></i><span>Verificando</span></span>
-          </div>
-          <div class="facts">
-            <div class="fact"><span>Backend</span><strong id="backend">—</strong></div>
-            <div class="fact"><span>Modelo</span><strong id="model">—</strong></div>
-            <div class="fact"><span>ADK</span><strong id="dependency">—</strong></div>
-            <div class="fact"><span>Sesión</span><strong id="sessionStatus">Nueva</strong></div>
-          </div>
-          <ul id="errors" class="errors"></ul>
+      <nav class="rail-nav" aria-label="Navegación">
+        <a class="nav-link active" href="/adk"><span class="glyph">◌</span>Mission Chat</a>
+        <a class="nav-link" href="/"><span class="glyph">⌁</span>Control autónomo</a>
+        <a class="nav-link" href="/architecture/agents" target="_blank" rel="noreferrer"><span class="glyph">◇</span>Topología JSON</a>
+      </nav>
+
+      <section class="rail-section" aria-labelledby="constellationTitle">
+        <div class="rail-heading">
+          <strong id="constellationTitle">Constelación activa</strong>
+          <span id="agentCount">0 agentes</span>
         </div>
-
-        <form id="missionForm">
-          <label for="goal">Misión</label>
-          <textarea id="goal" maxlength="4000">Diseña una solución asequible y sin electricidad para conservar alimentos mediante enfriamiento pasivo. Separa evidencia, hipótesis, riesgos y acciones sujetas a aprobación.</textarea>
-          <div class="ids">
-            <div>
-              <label for="userId">Usuario de demostración</label>
-              <input id="userId" value="hackathon-demo" maxlength="120">
-            </div>
-            <div>
-              <label for="sessionId">Sesión opcional</label>
-              <input id="sessionId" placeholder="Se genera automáticamente" maxlength="120">
-            </div>
+        <div id="agentList" class="agent-list">
+          <div class="agent-row active">
+            <div class="agent-avatar">Ω</div>
+            <div class="agent-copy"><strong>Cargando equipo</strong><span>Consultando topología real</span></div>
+            <i class="agent-dot"></i>
           </div>
-          <div class="actions">
-            <button id="runButton" class="button primary" type="submit" disabled>Ejecutar ADK real</button>
-            <button id="clearButton" class="button secondary" type="button">Limpiar</button>
-          </div>
-        </form>
-
-        <div id="truth" class="truth">La consola mostrará únicamente eventos entregados por Google ADK y metadatos seguros. Los datos binarios no se exponen.</div>
-      </aside>
-
-      <section class="panel trace">
-        <div class="trace-head">
-          <div>
-            <h3>Traza de agentes y herramientas</h3>
-            <p id="traceStatus">Lista para una ejecución configurada.</p>
-          </div>
-          <div id="counter" class="counter">0 eventos</div>
-        </div>
-        <div id="timeline" class="timeline">
-          <div class="empty">
-            <div><strong>Aquí aparecerá la ejecución real.</strong>ORION abrirá el contrato; los escuadrones paralelos producirán evidencia; SPARK llamará las herramientas; KIRA cerrará la decisión.</div>
-          </div>
-        </div>
-        <div id="finalOutput" class="final-output">
-          <h4>Respuesta final de KIRA</h4>
-          <div id="finalText"></div>
         </div>
       </section>
-    </section>
-  </main>
+
+      <div class="rail-footer">
+        <div id="runnerMini" class="runner-mini">
+          <i></i>
+          <div><strong>Google ADK Runner</strong><span id="runnerMiniLabel">Verificando configuración</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div class="model-id">
+          <div class="model-spark">✦</div>
+          <div><strong id="model">ORPHEUS Ω</strong><span id="backend">Backend pendiente</span></div>
+        </div>
+        <div class="top-actions">
+          <span id="readyPill" class="status-pill"><i></i><span>Verificando</span></span>
+          <a class="top-link" href="/">Salir al cockpit</a>
+        </div>
+      </header>
+
+      <section id="conversationScroll" class="chat-scroll" aria-live="polite">
+        <div id="timeline" class="thread">
+          <section class="hero">
+            <div class="hero-mark">Ω</div>
+            <h1>¿Qué misión debe resolver la Constelación?</h1>
+            <p>ORION define la victoria; evidencia y FORJA trabajan en paralelo; SPARK ejecuta; RECURSOR y NÉMESIS intentan destruir los falsos éxitos; HELIX puntúa la prueba; KIRA decide.</p>
+            <div class="hero-tags">
+              <span>18 agentes reales</span>
+              <span>4 escuadrones paralelos</span>
+              <span>Herramientas deterministas</span>
+              <span>Sin chain-of-thought público</span>
+            </div>
+          </section>
+        </div>
+        <section id="finalOutput" class="final-card">
+          <span>Decisión final verificable</span>
+          <h2>KIRA Ω</h2>
+          <div id="finalText"></div>
+        </section>
+      </section>
+
+      <div class="composer-wrap">
+        <form id="missionForm" class="composer">
+          <textarea id="goal" maxlength="4000" aria-label="Misión" placeholder="Asigna una misión medible a KIRA y la Constelación…">Convierte una invención técnica abandonada en un paquete de piloto verificable: reconstruye por qué falló, diseña variantes modernas, rechaza las inseguras, produce evidencia y deja cualquier acción externa detrás de aprobación humana.</textarea>
+          <div class="composer-bottom">
+            <span id="traceStatus" class="composer-note">La actividad mostrada proviene del Runner real.</span>
+            <button id="runButton" class="send" type="submit" aria-label="Ejecutar misión" disabled>↑</button>
+          </div>
+        </form>
+      </div>
+    </main>
+
+    <aside class="inspector">
+      <div class="inspector-title"><strong>Inspector de evidencia</strong><span>10/5 interno · 5/5 oficial</span></div>
+
+      <section class="inspector-card">
+        <h3>Prueba de ejecución</h3>
+        <div class="proof-grid">
+          <div class="proof"><span>Eventos</span><strong id="eventMetric">0</strong></div>
+          <div class="proof"><span>Herramientas</span><strong id="toolMetric">0</strong></div>
+          <div class="proof"><span>Errores</span><strong id="errorMetric">0</strong></div>
+          <div class="proof"><span>Final</span><strong id="finalMetric">No</strong></div>
+        </div>
+      </section>
+
+      <section class="inspector-card">
+        <h3>Runner</h3>
+        <div class="fact-row"><span>Backend</span><strong id="backendInspector">—</strong></div>
+        <div class="fact-row"><span>Modelo</span><strong id="modelInspector">—</strong></div>
+        <div class="fact-row"><span>Dependencia ADK</span><strong id="dependency">—</strong></div>
+        <div class="fact-row"><span>Sesión</span><strong id="sessionStatus">Nueva</strong></div>
+        <ul id="errors" class="error-list"></ul>
+      </section>
+
+      <section class="inspector-card">
+        <h3>Identidad de demostración</h3>
+        <div class="settings-grid">
+          <label for="userId">Usuario
+            <input id="userId" value="hackathon-demo" maxlength="120">
+          </label>
+          <label for="sessionId">Sesión opcional
+            <input id="sessionId" placeholder="Se genera automáticamente" maxlength="120">
+          </label>
+        </div>
+      </section>
+
+      <section class="inspector-card">
+        <h3>Límite de verdad</h3>
+        <p id="truth" class="truth-copy">Solo se mostrarán eventos reales de Google ADK y metadatos seguros. No se publica razonamiento privado, binarios, secretos ni URI privadas.</p>
+      </section>
+
+      <div class="inspector-actions">
+        <button id="clearButton" class="rail-action" type="button">Limpiar traza</button>
+        <button id="refreshButton" class="rail-action" type="button">Revisar Runner</button>
+      </div>
+    </aside>
+  </div>
   <script src="/assets/adk.js" defer></script>
 </body>
 </html>

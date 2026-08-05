@@ -1,7 +1,11 @@
 const refs = {
   readyPill: document.querySelector("#readyPill"),
+  runnerMini: document.querySelector("#runnerMini"),
+  runnerMiniLabel: document.querySelector("#runnerMiniLabel"),
   backend: document.querySelector("#backend"),
+  backendInspector: document.querySelector("#backendInspector"),
   model: document.querySelector("#model"),
+  modelInspector: document.querySelector("#modelInspector"),
   dependency: document.querySelector("#dependency"),
   sessionStatus: document.querySelector("#sessionStatus"),
   errors: document.querySelector("#errors"),
@@ -11,17 +15,73 @@ const refs = {
   sessionId: document.querySelector("#sessionId"),
   runButton: document.querySelector("#runButton"),
   clearButton: document.querySelector("#clearButton"),
+  refreshButton: document.querySelector("#refreshButton"),
+  newMission: document.querySelector("#newMission"),
   truth: document.querySelector("#truth"),
   traceStatus: document.querySelector("#traceStatus"),
-  counter: document.querySelector("#counter"),
+  conversationScroll: document.querySelector("#conversationScroll"),
   timeline: document.querySelector("#timeline"),
   finalOutput: document.querySelector("#finalOutput"),
   finalText: document.querySelector("#finalText"),
+  agentList: document.querySelector("#agentList"),
+  agentCount: document.querySelector("#agentCount"),
+  eventMetric: document.querySelector("#eventMetric"),
+  toolMetric: document.querySelector("#toolMetric"),
+  errorMetric: document.querySelector("#errorMetric"),
+  finalMetric: document.querySelector("#finalMetric"),
+};
+
+const displayNames = {
+  orion: "ORION",
+  vigia: "VIGÍA",
+  nyx_7: "NYX-7",
+  vega: "VEGA",
+  atlas_9: "ATLAS-9",
+  forja_core: "FORJA Ω · CORE",
+  forja_test: "FORJA Ω · TEST",
+  forja_ux: "FORJA Ω · UX",
+  spark: "SPARK",
+  recursor_omega: "RECURSOR-Ω",
+  nemesis_omega: "NÉMESIS-Ω",
+  helix_8: "HELIX-8",
+  aureus_7: "AUREUS-7",
+  bastion: "BASTION",
+  echo: "ECHO",
+  rift: "RIFT",
+  vanta_0: "VANTA-0",
+  kira: "KIRA Ω",
+};
+
+const roleNames = {
+  orion: "Contrato de misión",
+  vigia: "Evidencia y procedencia",
+  nyx_7: "Riesgos y contradicciones",
+  vega: "Pruebas y umbrales",
+  atlas_9: "Diseño de candidatos",
+  forja_core: "Arquitectura y contratos",
+  forja_test: "Pruebas y regresiones",
+  forja_ux: "Experiencia y demostración",
+  spark: "Herramientas deterministas",
+  recursor_omega: "Auditoría evolutiva",
+  nemesis_omega: "Falsificación implacable",
+  helix_8: "Puntuación basada en evidencia",
+  aureus_7: "Sostenibilidad y capital",
+  bastion: "Seguridad y aprobaciones",
+  echo: "Trazabilidad",
+  rift: "Desbloqueos legítimos",
+  vanta_0: "Rutas no convencionales",
+  kira: "Decisión final",
 };
 
 let readiness = null;
+let topology = null;
 let running = false;
 let eventCount = 0;
+let toolCount = 0;
+let errorCount = 0;
+let finalObserved = false;
+let outputKeyOwners = new Map();
+let knownAgents = new Set();
 
 function text(value) {
   return value === null || value === undefined ? "" : String(value);
@@ -35,6 +95,13 @@ function pretty(value) {
   }
 }
 
+function createElement(tag, className, content) {
+  const element = document.createElement(tag);
+  if (className) element.className = className;
+  if (content !== undefined) element.textContent = text(content);
+  return element;
+}
+
 function shortTime(value) {
   const date = new Date(value || Date.now());
   if (Number.isNaN(date.getTime())) return "ahora";
@@ -45,82 +112,249 @@ function shortTime(value) {
   }).format(date);
 }
 
-function createElement(tag, className, content) {
-  const element = document.createElement(tag);
-  if (className) element.className = className;
-  if (content !== undefined) element.textContent = text(content);
-  return element;
+function normalizeName(value) {
+  return text(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
 }
 
-function eventBadge(record) {
+function initials(name) {
+  const label = displayNames[name] || name || "Ω";
+  if (name === "kira") return "K";
+  if (name.startsWith("forja_")) return "F";
+  if (name === "recursor_omega") return "R";
+  if (name === "nemesis_omega") return "N";
+  return label.replace(/[^A-ZÁÉÍÓÚÑ0-9]/gi, "").slice(0, 2).toUpperCase() || "Ω";
+}
+
+function flattenTopology(payload) {
+  const agents = [];
+  outputKeyOwners = new Map();
+  for (const stage of payload?.stages || []) {
+    if (Array.isArray(stage.sub_agents)) {
+      for (const agent of stage.sub_agents) {
+        agents.push({ ...agent, stage: stage.name });
+        if (agent.output_key) outputKeyOwners.set(agent.output_key, agent.name);
+      }
+    } else if (stage.type === "LlmAgent") {
+      agents.push({ name: stage.name, output_key: stage.output_key, stage: stage.name });
+      if (stage.output_key) outputKeyOwners.set(stage.output_key, stage.name);
+    }
+  }
+  return agents;
+}
+
+function renderAgents(payload) {
+  const agents = flattenTopology(payload);
+  knownAgents = new Set(agents.map((agent) => agent.name));
+  refs.agentCount.textContent = `${agents.length} agentes`;
+  refs.agentList.replaceChildren();
+
+  for (const agent of agents) {
+    const row = createElement("div", "agent-row");
+    row.dataset.agent = agent.name;
+    row.append(createElement("div", "agent-avatar", initials(agent.name)));
+    const copy = createElement("div", "agent-copy");
+    copy.append(createElement("strong", "", displayNames[agent.name] || agent.name));
+    copy.append(createElement("span", "", roleNames[agent.name] || agent.stage || "Especialista"));
+    row.append(copy);
+    row.append(createElement("i", "agent-dot"));
+    refs.agentList.append(row);
+  }
+}
+
+function findAgentName(author) {
+  const normalized = normalizeName(author);
+  if (knownAgents.has(normalized)) return normalized;
+  for (const agent of knownAgents) {
+    if (normalized.includes(agent) || agent.includes(normalized)) return agent;
+  }
+  return null;
+}
+
+function setAgentStatus(name, status) {
+  if (!name) return;
+  const row = refs.agentList.querySelector(`[data-agent="${name}"]`);
+  if (!row) return;
+  row.classList.remove("running", "done", "error", "active");
+  if (status) row.classList.add(status);
+  if (status === "running") row.classList.add("active");
+}
+
+function resetAgentStatuses() {
+  for (const row of refs.agentList.querySelectorAll(".agent-row")) {
+    row.classList.remove("running", "done", "error", "active");
+  }
+}
+
+function completeAgentsFromState(stateDelta) {
+  if (!stateDelta || typeof stateDelta !== "object") return;
+  for (const key of Object.keys(stateDelta)) {
+    const owner = outputKeyOwners.get(key);
+    if (owner) setAgentStatus(owner, "done");
+  }
+}
+
+function updateMetrics() {
+  refs.eventMetric.textContent = String(eventCount);
+  refs.toolMetric.textContent = String(toolCount);
+  refs.errorMetric.textContent = String(errorCount);
+  refs.finalMetric.textContent = finalObserved ? "Sí" : "No";
+}
+
+function heroNode() {
+  const hero = createElement("section", "hero");
+  const mark = createElement("div", "hero-mark", "Ω");
+  const title = createElement("h1", "", "¿Qué misión debe resolver la Constelación?");
+  const copy = createElement(
+    "p",
+    "",
+    "ORION define la victoria; evidencia y FORJA trabajan en paralelo; SPARK ejecuta; RECURSOR y NÉMESIS intentan destruir los falsos éxitos; HELIX puntúa la prueba; KIRA decide.",
+  );
+  const tags = createElement("div", "hero-tags");
+  for (const label of [
+    "18 agentes reales",
+    "4 escuadrones paralelos",
+    "Herramientas deterministas",
+    "Sin chain-of-thought público",
+  ]) {
+    tags.append(createElement("span", "", label));
+  }
+  hero.append(mark, title, copy, tags);
+  return hero;
+}
+
+function clearTrace({ keepSession = true } = {}) {
+  eventCount = 0;
+  toolCount = 0;
+  errorCount = 0;
+  finalObserved = false;
+  updateMetrics();
+  resetAgentStatuses();
+  refs.finalText.textContent = "";
+  refs.finalOutput.classList.remove("visible");
+  refs.timeline.replaceChildren(heroNode());
+  refs.traceStatus.textContent = readiness?.ready
+    ? "Runner real listo para una misión."
+    : "Configura Gemini o Vertex AI para ejecutar.";
+  if (!keepSession) {
+    refs.sessionId.value = "";
+    refs.sessionStatus.textContent = "Nueva";
+  }
+}
+
+function appendUserMessage(goal) {
+  const article = createElement("article", "message user");
+  const body = createElement("div", "message-body");
+  const head = createElement("div", "message-head");
+  head.append(createElement("strong", "", "Tú"));
+  head.append(createElement("span", "", shortTime()));
+  body.append(head, createElement("p", "message-copy", goal));
+  article.append(body, createElement("div", "message-avatar", "AG"));
+  refs.timeline.append(article);
+}
+
+function kindLabel(kind) {
   const labels = {
+    session: "Sesión",
+    model: "Modelo",
+    tool_call: "Herramienta",
+    tool_result: "Resultado",
+    state: "Estado",
+    final: "Respuesta final",
+    complete: "Completado",
+    error: "Error",
+    event: "Evento",
+  };
+  return labels[kind] || kind.replaceAll("_", " ");
+}
+
+function kindGlyph(kind) {
+  const glyphs = {
     session: "Ω",
-    model: "LLM",
+    model: "✦",
     tool_call: "→",
     tool_result: "✓",
     state: "Δ",
     final: "K",
     complete: "✓",
     error: "!",
-    event: "·",
   };
-  return labels[record.kind] || "·";
+  return glyphs[kind] || "·";
 }
 
-function addStructuredBlock(card, title, value) {
+function addStructuredBlock(parent, title, value) {
   if (value === null || value === undefined) return;
   if (Array.isArray(value) && value.length === 0) return;
   if (!Array.isArray(value) && typeof value === "object" && Object.keys(value).length === 0) return;
-
-  const block = createElement("div", "tool");
+  const block = createElement("div", "structured");
   block.append(createElement("strong", "", title));
   block.append(createElement("pre", "", pretty(value)));
-  card.append(block);
+  parent.append(block);
 }
 
 function appendEvent(record) {
-  if (eventCount === 0) refs.timeline.replaceChildren();
   eventCount += 1;
-  refs.counter.textContent = `${eventCount} ${eventCount === 1 ? "evento" : "eventos"}`;
+  const calls = record.tool_calls || [];
+  toolCount += calls.length;
+  if (record.kind === "error" || record.error_message || record.error_code) errorCount += 1;
+  if (record.is_final || record.kind === "final") finalObserved = true;
+  updateMetrics();
+
+  const authorName = findAgentName(record.author);
+  if (authorName) setAgentStatus(authorName, record.kind === "error" ? "error" : "running");
+  completeAgentsFromState(record.state_delta);
+
+  const article = createElement("article", "message assistant");
+  article.append(createElement("div", "message-avatar", initials(authorName || "orpheus")));
+
+  const body = createElement("div", "message-body");
+  const head = createElement("div", "message-head");
+  head.append(createElement("strong", "", displayNames[authorName] || record.author || "ORPHEUS Ω"));
+  head.append(createElement("span", "", shortTime(record.timestamp)));
+  body.append(head);
+
+  const visibleTexts = [];
+  if (record.message) visibleTexts.push(record.message);
+  for (const item of record.texts || []) visibleTexts.push(item);
+  if (visibleTexts.length) body.append(createElement("p", "message-copy", visibleTexts.join("\n\n")));
 
   const kind = record.kind || "event";
-  const row = createElement("article", `event ${kind}`);
-  row.append(createElement("div", "event-icon", eventBadge(record)));
+  const card = createElement("section", `event-card ${kind}`);
+  const summary = createElement("div", "event-summary");
+  const kindElement = createElement("span", "event-kind");
+  kindElement.append(createElement("i", "", kindGlyph(kind)));
+  kindElement.append(document.createTextNode(kindLabel(kind)));
+  summary.append(kindElement);
+  summary.append(createElement("span", "event-seq", `#${record.sequence ?? eventCount}`));
+  card.append(summary);
 
-  const card = createElement("div", "event-card");
-  const meta = createElement("div", "event-meta");
-  const identity = createElement("div");
-  identity.append(createElement("strong", "", record.author || "system"));
-  identity.append(createElement("span", "kind", kind.replaceAll("_", " ")));
-  meta.append(identity);
-  meta.append(createElement("span", "", `#${record.sequence ?? eventCount} · ${shortTime(record.timestamp)}`));
-  card.append(meta);
-
-  if (record.message) card.append(createElement("p", "text-block", record.message));
-  for (const item of record.texts || []) card.append(createElement("p", "text-block", item));
-
-  for (const call of record.tool_calls || []) {
-    addStructuredBlock(card, `Llamada · ${call.name || "herramienta"}`, call.args || {});
+  const content = createElement("div", "event-content");
+  for (const call of calls) {
+    addStructuredBlock(content, `Llamada · ${call.name || "herramienta"}`, call.args || {});
   }
   for (const result of record.tool_results || []) {
-    addStructuredBlock(card, `Resultado · ${result.name || "herramienta"}`, result.response || {});
+    addStructuredBlock(content, `Resultado · ${result.name || "herramienta"}`, result.response || {});
   }
-
-  addStructuredBlock(card, "Cambio de estado", record.state_delta);
-  addStructuredBlock(card, "Artefactos", record.artifact_delta);
-  addStructuredBlock(card, "Adjuntos seguros", record.attachments);
-
+  addStructuredBlock(content, "Cambio de estado", record.state_delta);
+  addStructuredBlock(content, "Artefactos", record.artifact_delta);
+  addStructuredBlock(content, "Adjuntos seguros", record.attachments);
   if (record.error_message || record.error_code) {
-    row.classList.add("error");
-    addStructuredBlock(card, "Error", {
+    addStructuredBlock(content, "Fallo auditable", {
       code: record.error_code || null,
       message: record.error_message || "Error de ejecución",
     });
   }
-
-  row.append(card);
-  refs.timeline.append(row);
-  row.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  if (!content.childElementCount) {
+    content.append(createElement("div", "structured", "Evento registrado sin carga pública adicional."));
+  }
+  card.append(content);
+  body.append(card);
+  article.append(body);
+  refs.timeline.append(article);
 
   if (record.session_id) {
     refs.sessionStatus.textContent = record.session_id;
@@ -129,65 +363,91 @@ function appendEvent(record) {
   if (record.is_final && (record.texts || []).length) {
     refs.finalText.textContent = record.texts.join("\n");
     refs.finalOutput.classList.add("visible");
+    if (authorName) setAgentStatus(authorName, "done");
   }
   if (kind === "complete") {
+    for (const row of refs.agentList.querySelectorAll(".agent-row.running")) {
+      row.classList.remove("running", "active");
+      row.classList.add("done");
+    }
     refs.traceStatus.textContent = record.final_response_observed
-      ? "Invocación completada con respuesta final observada."
-      : "Invocación completada sin una respuesta final identificable.";
+      ? "Misión completada con respuesta final observada."
+      : "Misión terminada sin una respuesta final identificable.";
   }
-}
 
-function clearTrace() {
-  eventCount = 0;
-  refs.counter.textContent = "0 eventos";
-  refs.finalText.textContent = "";
-  refs.finalOutput.classList.remove("visible");
-  refs.traceStatus.textContent = readiness?.ready
-    ? "Lista para ejecutar el Runner real."
-    : "Configura Gemini o Vertex AI para ejecutar.";
-  const empty = createElement("div", "empty");
-  const copy = createElement("div");
-  copy.append(createElement("strong", "", "Aquí aparecerá la ejecución real."));
-  copy.append(document.createTextNode("La consola preservará la secuencia completa de eventos entregada por Google ADK."));
-  empty.append(copy);
-  refs.timeline.replaceChildren(empty);
+  refs.conversationScroll.scrollTo({
+    top: refs.conversationScroll.scrollHeight,
+    behavior: "smooth",
+  });
 }
 
 function setRunning(value) {
   running = value;
   refs.runButton.disabled = value || !readiness?.ready;
-  refs.runButton.textContent = value ? "Ejecutando…" : "Ejecutar ADK real";
+  refs.runButton.textContent = value ? "■" : "↑";
   refs.goal.disabled = value;
   refs.userId.disabled = value;
   refs.sessionId.disabled = value;
   refs.clearButton.disabled = value;
+  refs.newMission.disabled = value;
+  refs.refreshButton.disabled = value;
+}
+
+async function loadTopology() {
+  try {
+    const response = await fetch("/architecture/agents", { headers: { Accept: "application/json" } });
+    if (!response.ok) throw new Error(`Topología ${response.status}`);
+    topology = await response.json();
+    renderAgents(topology);
+  } catch (error) {
+    refs.agentCount.textContent = "error";
+    refs.agentList.replaceChildren();
+    const row = createElement("div", "agent-row error");
+    row.append(createElement("div", "agent-avatar", "!"));
+    const copy = createElement("div", "agent-copy");
+    copy.append(createElement("strong", "", "Topología no disponible"));
+    copy.append(createElement("span", "", error.message));
+    row.append(copy, createElement("i", "agent-dot"));
+    refs.agentList.append(row);
+  }
 }
 
 async function loadReadiness() {
+  refs.readyPill.classList.remove("ready");
+  refs.readyPill.querySelector("span").textContent = "Verificando";
+  refs.runnerMini.classList.remove("ready");
+  refs.runnerMiniLabel.textContent = "Verificando configuración";
   try {
     const response = await fetch("/adk/readiness", { headers: { Accept: "application/json" } });
     if (!response.ok) throw new Error(`Error ${response.status}`);
     readiness = await response.json();
 
-    refs.backend.textContent = readiness.backend || "—";
-    refs.model.textContent = readiness.model || "—";
+    const backend = readiness.backend || "—";
+    const model = readiness.model || "ORPHEUS Ω";
+    refs.backend.textContent = backend;
+    refs.backendInspector.textContent = backend;
+    refs.model.textContent = model;
+    refs.modelInspector.textContent = model;
     refs.dependency.textContent = readiness.dependency_available ? "Instalado" : "No instalado";
     refs.truth.textContent = readiness.truth_boundary || refs.truth.textContent;
     refs.readyPill.classList.toggle("ready", Boolean(readiness.ready));
-    refs.readyPill.querySelector("span").textContent = readiness.ready ? "Listo" : "No configurado";
+    refs.readyPill.querySelector("span").textContent = readiness.ready ? "Runner listo" : "No configurado";
+    refs.runnerMini.classList.toggle("ready", Boolean(readiness.ready));
+    refs.runnerMiniLabel.textContent = readiness.ready ? "Gemini/Vertex preparado" : "Requiere credenciales reales";
     refs.errors.replaceChildren();
     for (const error of readiness.validation_errors || []) {
       refs.errors.append(createElement("li", "", error));
     }
     refs.traceStatus.textContent = readiness.ready
-      ? "Runner real listo para recibir una misión."
-      : "La consola permanece honesta: no ejecutará una simulación ADK.";
+      ? "Runner real listo para una misión."
+      : "Modo honesto: no se simulará una ejecución ADK.";
     refs.runButton.disabled = !readiness.ready;
   } catch (error) {
     readiness = { ready: false };
     refs.readyPill.querySelector("span").textContent = "Error";
+    refs.runnerMiniLabel.textContent = "Estado no disponible";
     refs.errors.replaceChildren(createElement("li", "", error.message));
-    refs.traceStatus.textContent = "No fue posible consultar el estado del Runner.";
+    refs.traceStatus.textContent = "No fue posible consultar el Runner.";
     refs.runButton.disabled = true;
   }
 }
@@ -221,7 +481,19 @@ async function readNdjson(response) {
     if (done) break;
   }
 
-  if (buffer.trim()) appendEvent(JSON.parse(buffer));
+  if (buffer.trim()) {
+    try {
+      appendEvent(JSON.parse(buffer));
+    } catch {
+      appendEvent({
+        kind: "error",
+        author: "browser",
+        timestamp: new Date().toISOString(),
+        message: "El último evento NDJSON no pudo analizarse.",
+        error_message: buffer.slice(0, 500),
+      });
+    }
+  }
 }
 
 refs.missionForm.addEventListener("submit", async (event) => {
@@ -235,8 +507,11 @@ refs.missionForm.addEventListener("submit", async (event) => {
   }
 
   clearTrace();
+  refs.timeline.replaceChildren();
+  appendUserMessage(goal);
   setRunning(true);
   refs.traceStatus.textContent = "Conectando con Google ADK…";
+  setAgentStatus("orion", "running");
 
   try {
     const response = await fetch("/adk/stream", {
@@ -265,16 +540,31 @@ refs.missionForm.addEventListener("submit", async (event) => {
       kind: "error",
       author: "ORPHEUS",
       timestamp: new Date().toISOString(),
-      message: "La invocación no pudo completarse.",
+      message: "La misión no pudo completarse.",
       error_message: error.message,
     });
-    refs.traceStatus.textContent = "Ejecución detenida por error.";
+    refs.traceStatus.textContent = "Ejecución detenida por un fallo auditable.";
   } finally {
     setRunning(false);
   }
 });
 
-refs.clearButton.addEventListener("click", clearTrace);
+refs.clearButton.addEventListener("click", () => clearTrace());
+refs.newMission.addEventListener("click", () => {
+  clearTrace({ keepSession: false });
+  refs.goal.focus();
+});
+refs.refreshButton.addEventListener("click", loadReadiness);
+refs.goal.addEventListener("input", () => {
+  refs.goal.style.height = "auto";
+  refs.goal.style.height = `${Math.min(refs.goal.scrollHeight, 170)}px`;
+});
+refs.goal.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    refs.missionForm.requestSubmit();
+  }
+});
 
 clearTrace();
-loadReadiness();
+Promise.all([loadTopology(), loadReadiness()]);

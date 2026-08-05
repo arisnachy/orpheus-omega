@@ -4,154 +4,135 @@
 
 ORPHEUS Ω searches technical history, reconstructs why abandoned inventions failed, tests whether modern technology can revive them, and converts verified work into measurable human benefit and legitimate sustainability paths.
 
-## Version 0.5 — real Google ADK multi-agent architecture
+## Version 0.9 — FORJA engineering and evolutionary control
 
-Version 0.5 replaces the former single ADK agent whose specialist roles existed only inside one instruction prompt. The Gemini execution surface is now a real Google Agent Development Kit workflow composed of twelve specialist `LlmAgent` instances, two concurrent `ParallelAgent` groups, and one deterministic `SequentialAgent` root.
+The Gemini execution surface is a real Google Agent Development Kit workflow composed of:
 
-The ADK pipeline is:
+- **18 specialist `LlmAgent` instances**;
+- **4 real `ParallelAgent` squads**;
+- one deterministic `SequentialAgent` root;
+- unique ADK `output_key` state channels for every specialist;
+- deterministic tools isolated under SPARK;
+- explicit human approval boundaries;
+- a live browser trace driven by `Runner.run_async()` events.
+
+No agent name, interface card, event count, or model narrative alone counts as evidence.
+
+## Real ADK pipeline
 
 1. **ORION** creates the measurable mission contract.
 2. **VIGÍA**, **NYX-7**, and **VEGA** run concurrently to inspect provenance, risk, and verification requirements.
 3. **ATLAS-9** creates candidate architectures and rejection rules.
-4. **SPARK** calls the repository's applicable deterministic tools.
-5. **AUREUS-7**, **BASTION**, **ECHO**, **RIFT**, and **VANTA-0** run concurrently to evaluate sustainability, approval gates, provenance, blockers, and alternative routes.
-6. **KIRA** resolves disagreements and returns the final evidence-controlled decision.
+4. **FORJA Ω** runs three engineering specialists concurrently:
+   - `forja_core` defines typed architecture, state, tool, retry, timeout, and security contracts;
+   - `forja_test` defines acceptance tests, regression gates, and failure injection before execution;
+   - `forja_ux` defines a chat-first proof interface backed only by runtime evidence.
+5. **SPARK** calls the repository's applicable deterministic tools and reports raw results.
+6. **RECURSOR-Ω** and **NÉMESIS-Ω** run concurrently:
+   - RECURSOR detects plan weaknesses, programming defects, repeated failures, false closure, technical debt, and defects in the work method itself;
+   - NÉMESIS tries to falsify the preferred route and find a stronger lawful alternative without bypassing safety, authorization, privacy, intellectual property, platform, or hackathon rules.
+7. **HELIX-8** runs after both audits and scores only demonstrated evidence from 1 to 5 for operational utility, architecture, and demo/production readiness.
+8. **AUREUS-7**, **BASTION**, **ECHO**, **RIFT**, and **VANTA-0** run concurrently to evaluate sustainability, approval gates, provenance, blockers, and alternate paths.
+9. **KIRA Ω** resolves disagreements and returns the final evidence-controlled decision.
 
-Every specialist writes to a unique ADK `output_key`, so downstream agents receive explicit session state rather than relying on theatrical role names in a shared prompt. The real topology is available as machine-readable JSON at `GET /architecture/agents`.
+KIRA may not declare completion when RECURSOR returns `FAIL` or HELIX says mandatory submission viability is `FAIL`.
 
-## Live Google ADK event console
+The machine-readable topology is available at `GET /architecture/agents`.
 
-`GET /adk` opens a dedicated light interface that consumes the actual event stream produced by `Runner.run_async()`.
+## Hypermodern mission chat
 
-The console shows, in order:
+`GET /adk` serves a light, responsive, ChatGPT/Codex-style mission interface with three proof-oriented zones:
 
-- the agent that authored each event;
-- visible model output;
-- deterministic tool calls and bounded arguments;
-- tool results;
-- explicit session-state deltas;
-- completion or failure records;
-- KIRA's final visible response.
+- **Constellation rail:** loads the actual 18-agent topology and marks agents from real event authors and state deltas;
+- **Mission conversation:** renders user direction, visible agent output, tool calls, tool results, errors, and KIRA's final response as one continuous chat;
+- **Evidence inspector:** counts real events, tool calls, errors, final-response observation, backend, model, dependency state, and session identity.
+
+The interface does not generate fake agent activity. When Gemini or Vertex AI is not configured, the execution button remains disabled and the readiness errors stay visible.
+
+## Live Google ADK event bridge
 
 The bridge exposes:
 
 - `GET /adk/readiness` — reports whether a real Gemini or Vertex-backed run can start;
-- `POST /adk/run` — executes one invocation and returns its auditable event list;
+- `POST /adk/run` — executes one invocation and returns its bounded event list;
 - `POST /adk/stream` — streams every event as newline-delimited JSON.
 
-The bridge refuses to imitate an ADK execution in the default `mock` mode. It imports the cloud agent graph and creates the Runner only after the real backend passes readiness checks. It also consumes the complete event sequence instead of stopping at the first final-response marker.
+The public trace can show:
+
+- event author and sequence;
+- visible model output;
+- deterministic tool calls and bounded arguments;
+- tool results;
+- explicit session-state and artifact deltas;
+- completion or failure records;
+- KIRA's final visible response.
 
 ### Trace privacy boundary
 
-The public trace contains actions and evidence, not private chain-of-thought. ADK parts marked as `thought` are counted but their text is never transmitted. Binary payloads are reduced to safe metadata, file URIs are not exposed, and serialized payloads are depth- and size-bounded.
+The public trace contains actions and evidence, not private chain-of-thought. ADK parts marked as `thought` are counted but their text is never transmitted. Binary payloads are reduced to safe metadata, private file URIs are not exposed, and serialized payloads are depth- and size-bounded.
 
 ## Primary-source provenance
 
-The passive-cooling catalog is no longer synthetic scaffolding. Each of its five mechanisms now includes:
+Each passive-cooling concept contains at least two stable primary or peer-reviewed engineering sources with:
 
-- at least two stable primary or peer-reviewed engineering sources;
 - DOI or stable proceedings URL;
 - evidence type;
-- a bounded statement of exactly what the source supports;
-- known mechanism limitations;
-- an explicit distinction between **source verification** and **ORPHEUS application validation**.
+- bounded support statement;
+- mechanism and known limitations;
+- separate `source_verification` and `application_validation` states.
 
-A published experiment can verify that a mechanism exists without validating the current ORPHEUS geometry, target climate, food safety, manufacturability, patent position, or economics. `GET /catalog` reports both states separately and fails its provenance contract when a source lacks a title, stable URL, evidence type, or bounded support statement.
+A published experiment may verify a mechanism without validating the current ORPHEUS geometry, target climate, food safety, manufacturability, patent position, demand, or economics.
 
 ## Two honest execution surfaces
 
-The repository intentionally separates two execution surfaces and joins them through an optional event bridge:
-
 - `agent_app/agent.py` is the real Gemini + Google ADK multi-agent workflow.
-- `orpheus/autonomy.py` is the credential-free deterministic control plane used by the main FastAPI interface, scheduler, reproducible demo, tests, approval queue, and offline verification.
-- `orpheus/adk_bridge.py` streams the real ADK Runner into `/adk` only when a real backend is configured.
+- `orpheus/autonomy.py` is the credential-free deterministic control plane used by the primary FastAPI interface, scheduler, reproducible demo, approval queue, and offline tests.
+- `orpheus/adk_bridge.py` connects the real ADK Runner to `/adk` only after a real backend passes readiness checks.
 
-This design keeps the project testable without credentials while providing a genuine cloud-agent demonstration when Gemini or Vertex AI is available.
+The deterministic surface keeps the repository testable without credentials. It is not presented as proof that Gemini, Vertex AI, or Cloud Run executed.
 
-## Evidence-aware autonomy
+## Current deterministic mission boundary
 
-Every human objective is classified as **verification** or **discovery**:
-
-- only passive food-cooling goals may use the repository's current deterministic simulator;
-- unrelated goals never inherit a false success result from the reference mission;
-- every local runtime stage records an output summary, timestamps, and status;
-- the runtime keeps cycle history and can optionally persist state to JSON;
-- repeated scheduler calls can carry an idempotency key;
-- external and financial actions can be approved or declined with a human note;
-- KIRA produces a downloadable decision memo and complete JSON state;
-- prices, margins, customers, grants, demand, and patent position remain explicitly labelled as hypotheses unless independently verified.
-
-## Autonomous control interface
-
-FastAPI serves a light ChatGPT/Codex-style deterministic control interface at `/`. The interface is driven by live runtime data rather than static cards.
-
-It can:
-
-- start, pause, and manually trigger autonomous cycles;
-- accept a new direction through chat;
-- display the active classification and technical status;
-- render the full recommendation, benefit, candidates, economics, limits, and history;
-- show the output produced by each local execution stage;
-- export the KIRA decision memo as Markdown;
-- export the full runtime state as JSON;
-- review, approve, or decline gated actions;
-- show the team, execution progress, events, and recent cycles;
-- expose the real ADK hierarchy through `/architecture/agents`;
-- link to the real ADK event console at `/adk`.
-
-## Safety and approval boundary
-
-Safe local, reversible, non-financial actions may run automatically. Communication, publication, contracting, payment, account changes, private-data disclosure, and irreversible actions require explicit human approval.
-
-Gemini may propose hypotheses. Deterministic tools and an independent verifier decide whether a supported technical mission passes. KIRA may automatically complete safe local work. The human decides whether any external or financial action may proceed.
-
-## Current technical mission
-
-The deterministic mission currently supported by the repository is:
+The repository currently has one complete deterministic simulator:
 
 > Design an affordable, locally manufacturable, grid-free food-preservation concept by combining passive-cooling ideas.
 
-The thermal model is a preliminary deterministic proxy. It is **not** CFD, field validation, food-safety approval, patent clearance, measured demand, or measured commercial performance. The catalog's sources document bounded mechanism-level evidence; all current ORPHEUS applications remain pending mission-specific validation.
+Unrelated goals remain in discovery until a relevant simulator, dataset, external tool, or reproducible verification protocol exists. The thermal model is a preliminary proxy, not CFD, field validation, food-safety approval, patent clearance, measured demand, or measured commercial performance.
+
+## Safety and authorization
+
+Safe, local, reversible, non-financial actions may run automatically. The following require explicit human approval:
+
+- external communication;
+- publication;
+- contracting;
+- payment;
+- account changes;
+- private-data disclosure;
+- irreversible actions.
+
+Urgency, competitive pressure, requests to ignore rules, and agent preference never remove these gates.
 
 ## Credential-free verification
 
-```powershell
-powershell -ExecutionPolicy Bypass -File deployment/test-local.ps1
-```
-
-Or:
-
 ```bash
-python -m pip install -e ".[api]"
+python -m pip install -e ".[all]"
 python -m unittest discover -s tests -v
 python scripts/run_demo.py
+python -m compileall agent_app app orpheus tests scripts
+node --check web/app.js
+node --check web/adk.js
 uvicorn app.main:app --reload
 ```
 
-Open `http://127.0.0.1:8000/`. In credential-free mode, `/adk` remains visible but correctly reports that a real cloud-backed run is not configured.
+Open:
 
-## Verify the real ADK topology and bridge
+- `http://127.0.0.1:8000/` for the deterministic autonomous cockpit;
+- `http://127.0.0.1:8000/adk` for the real ADK mission chat.
 
-```bash
-python -m pip install -e ".[all]"
-python -c "from agent_app.agent import root_agent; print(root_agent.name, [a.name for a in root_agent.sub_agents])"
-python -m unittest discover -s tests -p "test_agent_architecture.py" -v
-python -m unittest discover -s tests -p "test_adk_bridge.py" -v
-```
+In credential-free mode, `/adk` remains visible but correctly refuses to imitate a cloud-backed run.
 
-The tests verify that:
-
-- the root is an actual `SequentialAgent`;
-- both specialist squads are actual `ParallelAgent` instances;
-- twelve specialists are actual `LlmAgent` instances;
-- every specialist has a unique state `output_key`;
-- SPARK owns the deterministic execution tools;
-- the public topology endpoint matches the runtime hierarchy;
-- the bridge preserves event order and consumes callback-tail events;
-- mock mode cannot masquerade as a real ADK run;
-- thought text, binary bytes, and private file URIs never enter the public trace.
-
-## Run the live ADK console with Gemini API
+## Run with Gemini API
 
 Configure the key in the environment; never commit it.
 
@@ -164,9 +145,9 @@ $env:GOOGLE_API_KEY="YOUR_KEY"
 uvicorn app.main:app --reload
 ```
 
-Open `http://127.0.0.1:8000/adk` and confirm `GET /adk/readiness` reports `ready: true` before running a mission.
+Confirm `GET /adk/readiness` reports `ready: true` before launching a mission.
 
-## Run the live ADK console with Vertex AI
+## Run with Vertex AI
 
 ```powershell
 python -m pip install -e ".[all]"
@@ -180,33 +161,17 @@ $env:GOOGLE_CLOUD_LOCATION="global"
 uvicorn app.main:app --reload
 ```
 
-The current ADK bridge uses `InMemorySessionService`, which is appropriate for one-process demonstrations. Continued sessions across multiple Cloud Run instances require a shared session service before production use.
+The current ADK bridge uses `InMemorySessionService`, which is appropriate for one-process demonstrations. Continued sessions across multiple Cloud Run instances still require a shared persistent session service and distributed locking.
 
-The standard ADK developer interface remains available through:
+## Google Cloud activation
 
-```bash
-adk web .
+```powershell
+gcloud auth login
+gcloud auth application-default login
+powershell -ExecutionPolicy Bypass -File deployment/prepare-cloud.ps1 -ProjectId YOUR_PROJECT_ID
+powershell -ExecutionPolicy Bypass -File deployment/deploy-cloud-run.ps1 -ProjectId YOUR_PROJECT_ID -Public
+powershell -ExecutionPolicy Bypass -File deployment/configure-autonomy-scheduler.ps1 -ProjectId YOUR_PROJECT_ID
 ```
-
-Select `agent_app` and provide a measurable mission.
-
-## Autonomous configuration
-
-```bash
-# Start the in-process deterministic autonomous loop. Default: true.
-ORPHEUS_AUTONOMY_ENABLED=true
-
-# Minimum 30 seconds. Default: 300.
-ORPHEUS_AUTONOMY_INTERVAL_SECONDS=300
-
-# Optional JSON persistence for local or single-instance deployments.
-ORPHEUS_STATE_PATH=.orpheus/runtime-state.json
-
-# Optional payment-channel readiness flag. The value is never returned by the API.
-ORPHEUS_PAYMENT_HANDLE=your-configured-payment-channel
-```
-
-For multi-instance Cloud Run persistence and distributed locking, use Firestore or another shared state service. A local JSON path is not a substitute for distributed state.
 
 ## Useful endpoints
 
@@ -228,24 +193,24 @@ For multi-instance Cloud Run persistence and distributed locking, use Firestore 
 - `POST /autonomy/cycle`
 - `POST /autonomy/profile`
 - `POST /autonomy/actions/{action_id}/decision`
-- `POST /autonomy/approve/{action_id}` — backward compatibility
 - `GET /autonomy/export/decision.md`
 - `GET /autonomy/export/state.json`
 
-A scheduler may send `X-Orpheus-Run-Key` to `/autonomy/cycle` to prevent duplicate execution of the same scheduled run within one persisted runtime state.
+## Hackathon truth boundary
 
-## Google Cloud activation
+The official per-criterion maximum is **5/5**. The official final score can reach **6/6** through permitted bonus contributions. “10/5” is an internal aspiration for clarity and impact, not a fabricated rubric score.
 
-```powershell
-gcloud auth login
-gcloud auth application-default login
-powershell -ExecutionPolicy Bypass -File deployment/prepare-cloud.ps1 -ProjectId YOUR_PROJECT_ID
-powershell -ExecutionPolicy Bypass -File deployment/deploy-cloud-run.ps1 -ProjectId YOUR_PROJECT_ID -Public
-powershell -ExecutionPolicy Bypass -File deployment/configure-autonomy-scheduler.ps1 -ProjectId YOUR_PROJECT_ID
-```
+Still required before a winning submission can be claimed:
 
-See [`docs/CREDENTIALS_AND_DEPLOYMENT.md`](docs/CREDENTIALS_AND_DEPLOYMENT.md), [`docs/AUTONOMY.md`](docs/AUTONOMY.md), and [`docs/ALL_THINGS_AGENTIC_WIN_PLAN.md`](docs/ALL_THINGS_AGENTIC_WIN_PLAN.md).
+1. real Gemini or Vertex execution preserved as evidence;
+2. Cloud Run deployment and visible Google Cloud proof;
+3. shared durable session state and crash-safe resume;
+4. one human-approved external beneficiary action;
+5. golden evaluations and adversarial security gates;
+6. final architecture PNG/PDF;
+7. public four-minute English demo video;
+8. completed Devpost submission.
 
 ## Core rule
 
-No agent name, interface card, model narrative, event count, or citation count alone counts as evidence. A claim advances only when the relevant source, bounded support statement, tool, test, and approval state support it.
+A claim advances only when the relevant source, tool, test, state transition, approval, and closure evidence support it.
