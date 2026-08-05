@@ -22,7 +22,7 @@ The demo must show the agent doing work end to end:
 
 1. Receive a measurable mission.
 2. Create an autonomous mission contract.
-3. Explore and classify historical approaches.
+3. Explore and classify historically documented approaches.
 4. Generate multiple candidate combinations.
 5. Reject at least one candidate using deterministic validation.
 6. Select a final candidate with explicit uncertainty.
@@ -31,10 +31,13 @@ The demo must show the agent doing work end to end:
 
 ### Architectural Discipline & Tech Stack — 30%
 
-Evidence to surface:
+Evidence now present in the repository:
 
-- Google ADK multi-agent orchestration.
-- Gemini 3.5+ for hypothesis generation and technical reasoning.
+- A real Google ADK `SequentialAgent` root.
+- Twelve specialist `LlmAgent` instances.
+- Two actual `ParallelAgent` squads.
+- Unique ADK `output_key` state channels.
+- Gemini 3.5+ configuration for hypothesis generation and technical reasoning.
 - FastAPI control plane.
 - Long-running autonomous cycles with start, pause, resume, and manual trigger.
 - Persistent mission state and provenance.
@@ -44,6 +47,7 @@ Evidence to surface:
 - Environment-only secrets and payment configuration.
 - Cloud Run deployment path and scale-to-zero configuration.
 - Automated tests and GitHub Actions.
+- Machine-readable architecture topology at `/architecture/agents`.
 
 ### Demo & Production Readiness — 30%
 
@@ -51,10 +55,10 @@ The four-minute demo should be one continuous story:
 
 - 0:00–0:25 — The problem: useful inventions can die because they arrived before enabling technology.
 - 0:25–0:50 — Start the passive-cooling mission from the live interface.
-- 0:50–1:40 — Show the autonomous agent timeline and intermediate decisions.
+- 0:50–1:40 — Show the real autonomous agent timeline and intermediate decisions.
 - 1:40–2:25 — Show one candidate rejected by deterministic evidence and the final candidate selected.
 - 2:25–3:05 — Show beneficiary and monetization hypotheses plus the approval queue.
-- 3:05–3:35 — Show architecture and safety boundaries.
+- 3:05–3:35 — Show the actual ADK hierarchy, source provenance, and safety boundaries.
 - 3:35–4:00 — Show Cloud Run evidence, repository, tests, and reproducible setup.
 
 ## Required submission evidence
@@ -64,20 +68,31 @@ The four-minute demo should be one continuous story:
 - Architecture diagram exported to PNG or PDF.
 - Approximately four-minute demo video.
 - Proof that the backend ran on Google Cloud.
-- Clear disclosure of pre-existing libraries, public datasets, templates, and open-source components.
+- Clear disclosure of pre-existing libraries, public datasets, papers, templates, and open-source components.
 - Project start date recorded as August 4, 2026.
 
 ## Truth boundary
 
 Do not claim field validation, CFD validation, food-safety approval, patent clearance, measured customer demand, confirmed pricing, confirmed grants, confirmed customers, or guaranteed revenue unless real evidence is added.
 
-Gemini may propose hypotheses. Deterministic tools and an independent verifier decide whether a technical mission passes. The human approves external communication, contracting, publication, payment, and irreversible actions.
+A source can verify a bounded mechanism-level claim without validating the current ORPHEUS design. Gemini may propose hypotheses. Deterministic tools and an independent verifier decide whether a technical mission passes. The human approves external communication, contracting, publication, payment, and irreversible actions.
+
+## Completed milestones
+
+1. Replaced prompt-only specialist roleplay with a real twelve-agent Google ADK workflow.
+2. Added automated tests that inspect the actual sequential and parallel hierarchy.
+3. Added explicit session-state transport through unique `output_key` values.
+4. Added a public machine-readable architecture endpoint.
+5. Replaced all five historical source placeholders with bounded primary or peer-reviewed engineering provenance.
+6. Added catalog integrity checks that distinguish source verification from application validation.
+7. Updated the public Devpost project to match the repository's real implementation and remaining proof.
 
 ## Immediate blockers before submission
 
-1. Replace historical source placeholders with authoritative provenance.
-2. Produce and commit the final architecture diagram.
+1. Stream real ADK execution events into the same FastAPI control interface.
+2. Produce and commit the final architecture diagram as PNG or PDF.
 3. Deploy once to Google Cloud and preserve visible proof.
 4. Record the continuous demo video.
 5. Add the final hosted URL if available.
-6. Complete the Devpost submission fields and upload the architecture diagram.
+6. Attach ORPHEUS Ω to the All Things Agentic Hackathon and complete the submission fields.
+7. Upload the architecture diagram and demo video before final submission.
