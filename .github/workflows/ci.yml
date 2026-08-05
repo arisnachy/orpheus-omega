@@ -41,8 +41,8 @@ jobs:
       - name: Verify ADK dependency and application import
         run: |
           python -c "import google.adk; print('google-adk import: OK')"
-          python -c "from agent_app.agent import app, root_agent; print(app.name, root_agent.name, len(root_agent.sub_agents))"
-          python -c "from orpheus.agent_topology import get_agent_topology; topology = get_agent_topology(); print(topology['framework'], topology['specialist_agent_count'])"
+          python -c "from agent_app.agent import app, root_agent; assert len(root_agent.sub_agents) == 9; print(app.name, root_agent.name, len(root_agent.sub_agents))"
+          python -c "from orpheus.agent_topology import get_agent_topology; topology = get_agent_topology(); assert topology['specialist_agent_count'] == 18; assert topology['parallel_groups'] == 4; print(topology['framework'], topology['specialist_agent_count'])"
           python -c "from app.main import adk_readiness; state = adk_readiness(); assert not state['ready']; assert state['backend'] == 'mock'; print('honest mock-mode ADK gate: OK')"
 
       - name: Run unit tests
@@ -59,20 +59,24 @@ jobs:
           node --check web/app.js
           node --check web/adk.js
 
-      - name: Verify web asset references
+      - name: Verify web asset references and proof UI
         run: |
           python - <<'PY'
           from pathlib import Path
           expected = {
               'web/index.html': ('/assets/app.css', '/assets/app.js'),
-              'web/adk.html': ('/assets/adk.js',),
+              'web/adk.html': ('/assets/adk.css', '/assets/adk.js', 'agentList', 'eventMetric', 'Mission Chat'),
           }
           for filename, assets in expected.items():
               html = Path(filename).read_text(encoding='utf-8')
               for asset in assets:
                   if asset not in html:
-                      raise SystemExit(f'missing web asset reference in {filename}: {asset}')
-          print('web asset references: OK')
+                      raise SystemExit(f'missing web asset or proof marker in {filename}: {asset}')
+          js = Path('web/adk.js').read_text(encoding='utf-8')
+          for marker in ('/architecture/agents', '/adk/readiness', '/adk/stream', 'recursor_omega', 'nemesis_omega'):
+              if marker not in js:
+                  raise SystemExit(f'missing live integration marker in web/adk.js: {marker}')
+          print('web asset and proof UI references: OK')
           PY
 
       - name: Publish machine-readable commit status
