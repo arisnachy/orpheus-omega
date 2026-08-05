@@ -25,7 +25,7 @@ class AgentContractTests(unittest.TestCase):
         self.assertEqual("orpheus_omega", root_agent.name)
         self.assertEqual("agent_app", app.name)
         self.assertIsInstance(root_agent, SequentialAgent)
-        self.assertEqual(len(root_agent.sub_agents), 6)
+        self.assertEqual(len(root_agent.sub_agents), 9)
 
         all_agents = []
 
@@ -37,15 +37,19 @@ class AgentContractTests(unittest.TestCase):
         walk(root_agent)
         self.assertEqual(
             len([agent for agent in all_agents if isinstance(agent, LlmAgent)]),
-            12,
+            18,
         )
         self.assertEqual(
             len([agent for agent in all_agents if isinstance(agent, ParallelAgent)]),
-            2,
+            4,
         )
 
         spark = next(agent for agent in all_agents if agent.name == "spark")
         self.assertGreaterEqual(len(spark.tools), 2)
+        self.assertIsNotNone(next(agent for agent in all_agents if agent.name == "forja_core"))
+        self.assertIsNotNone(next(agent for agent in all_agents if agent.name == "recursor_omega"))
+        self.assertIsNotNone(next(agent for agent in all_agents if agent.name == "nemesis_omega"))
+        self.assertIsNotNone(next(agent for agent in all_agents if agent.name == "helix_8"))
 
 
 if __name__ == "__main__":
