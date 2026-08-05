@@ -19,6 +19,19 @@ The ADK pipeline is:
 
 Every specialist writes to a unique ADK `output_key`, so downstream agents receive explicit session state rather than relying on theatrical role names in a shared prompt. The real topology is available as machine-readable JSON at `GET /architecture/agents`.
 
+## Primary-source provenance
+
+The passive-cooling catalog is no longer synthetic scaffolding. Each of its five mechanisms now includes:
+
+- at least two stable primary or peer-reviewed engineering sources;
+- DOI or stable proceedings URL;
+- evidence type;
+- a bounded statement of exactly what the source supports;
+- known mechanism limitations;
+- an explicit distinction between **source verification** and **ORPHEUS application validation**.
+
+A published experiment can verify that a mechanism exists without validating the current ORPHEUS geometry, target climate, food safety, manufacturability, patent position, or economics. `GET /catalog` reports both states separately and fails its provenance contract when a source lacks a title, stable URL, evidence type, or bounded support statement.
+
 ## Two honest execution surfaces
 
 The repository intentionally separates two surfaces:
@@ -70,7 +83,7 @@ The deterministic mission currently supported by the repository is:
 
 > Design an affordable, locally manufacturable, grid-free food-preservation concept by combining passive-cooling ideas.
 
-The thermal model is a preliminary deterministic proxy. It is **not** CFD, field validation, food-safety approval, patent clearance, measured demand, or measured commercial performance. Historical catalog entries that say source verification is pending must not be presented as verified history.
+The thermal model is a preliminary deterministic proxy. It is **not** CFD, field validation, food-safety approval, patent clearance, measured demand, or measured commercial performance. The catalog's sources document bounded mechanism-level evidence; all current ORPHEUS applications remain pending mission-specific validation.
 
 ## Credential-free verification
 
@@ -94,7 +107,7 @@ Open `http://127.0.0.1:8000/`.
 ```bash
 python -m pip install -e ".[agent]"
 python -c "from agent_app.agent import root_agent; print(root_agent.name, [a.name for a in root_agent.sub_agents])"
-python -m unittest tests.test_agent_architecture -v
+python -m unittest discover -s tests -p "test_agent_architecture.py" -v
 ```
 
 The architecture test verifies that:
@@ -169,4 +182,4 @@ See [`docs/CREDENTIALS_AND_DEPLOYMENT.md`](docs/CREDENTIALS_AND_DEPLOYMENT.md), 
 
 ## Core rule
 
-No agent name, interface card, or model narrative counts as evidence. A claim is allowed to advance only when the relevant tool, source, test, and approval state support it.
+No agent name, interface card, model narrative, or citation count alone counts as evidence. A claim advances only when the relevant source, bounded support statement, tool, test, and approval state support it.
