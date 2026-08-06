@@ -19,7 +19,7 @@ try:
 except ImportError as exc:
     raise RuntimeError('Install with: pip install -e ".[api]"') from exc
 
-from orpheus.adk_bridge import adk_runtime
+from orpheus.adk_bridge import adk_runtime, serialize_runtime_exception
 from orpheus.agent_topology import get_agent_topology
 from orpheus.autonomy import runtime
 from orpheus.models import Climate, Design, MissionConstraints
@@ -102,6 +102,7 @@ def health() -> dict:
 @app.get("/readiness")
 def readiness() -> dict:
     summary = Settings.from_env().public_summary()
+    topology = get_agent_topology()
     summary["autonomy"] = {
         "autostart": runtime.autostart,
         "interval_seconds": runtime.interval_seconds,
@@ -110,8 +111,10 @@ def readiness() -> dict:
         "approval_gates": True,
         "goal_classification": True,
         "real_adk_multi_agent": True,
-        "specialist_agents": 18,
-        "parallel_groups": 4,
+        "specialist_agents": topology["specialist_agent_count"],
+        "execution_profile": topology["execution_profile"],
+        "parallel_groups": topology["parallel_groups"],
+        "potential_parallel_groups": topology["potential_parallel_groups"],
         "forja_engineering": True,
         "evolutionary_audit": True,
         "lawful_adversarial_review": True,
@@ -154,8 +157,9 @@ async def adk_run(payload: AdkMissionInput) -> dict[str, Any]:
         )
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
-    except RuntimeError as exc:
-        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        diagnosis = serialize_runtime_exception(exc)
+        raise HTTPException(status_code=502, detail=diagnosis) from exc
 
 
 @app.post("/adk/stream")
@@ -164,7 +168,8 @@ async def adk_stream(payload: AdkMissionInput) -> StreamingResponse:
 
     The readiness gate runs before response headers are sent. Runtime failures that
     occur after streaming starts are emitted as explicit error events rather than
-    being disguised as a successful agent response.
+    being disguised as a successful agent response. ExceptionGroup/TaskGroup wrappers
+    are flattened so the browser receives the concrete sanitized causes.
     """
 
     state = adk_runtime.readiness()
@@ -180,14 +185,17 @@ async def adk_stream(payload: AdkMissionInput) -> StreamingResponse:
             ):
                 yield json.dumps(record, ensure_ascii=False, default=str) + "\n"
         except Exception as exc:  # The stream must preserve an auditable failure.
+            diagnosis = serialize_runtime_exception(exc)
             error_record = {
                 "kind": "error",
                 "author": "ORPHEUS",
                 "timestamp": datetime.now(timezone.utc).isoformat(),
                 "is_final": False,
-                "error_code": type(exc).__name__,
-                "error_message": str(exc)[:2000],
-                "message": "The real ADK invocation failed before completion.",
+                **diagnosis,
+                "message": (
+                    "La ejecución ADK real se detuvo. Se preservó la causa concreta "
+                    "sin exponer credenciales."
+                ),
             }
             yield json.dumps(error_record, ensure_ascii=False) + "\n"
 

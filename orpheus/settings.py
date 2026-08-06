@@ -16,11 +16,15 @@ class Settings:
     """Runtime configuration loaded exclusively from environment variables.
 
     Secrets are never included in ``public_summary`` or readiness responses.
+    ``execution_profile`` controls orchestration pressure, not which specialists
+    exist. ``free_safe`` preserves the complete 18-agent workflow but runs squad
+    members sequentially to avoid burst concurrency on local/free Gemini access.
     """
 
     runtime_mode: str = "local"
     llm_backend: str = "mock"
     model: str = "gemini-3.6-flash"
+    execution_profile: str = "parallel"
     google_cloud_project: str | None = None
     google_cloud_location: str = "global"
     firestore_enabled: bool = False
@@ -33,10 +37,22 @@ class Settings:
 
     @classmethod
     def from_env(cls) -> "Settings":
+        runtime_mode = os.getenv("ORPHEUS_RUNTIME_MODE", "local").strip().lower()
+        llm_backend = os.getenv("ORPHEUS_LLM_BACKEND", "mock").strip().lower()
+        profile_default = (
+            "free_safe"
+            if runtime_mode == "local" and llm_backend == "gemini_api"
+            else "parallel"
+        )
+        execution_profile = os.getenv(
+            "ORPHEUS_EXECUTION_PROFILE", profile_default
+        ).strip().lower()
+
         return cls(
-            runtime_mode=os.getenv("ORPHEUS_RUNTIME_MODE", "local").strip().lower(),
-            llm_backend=os.getenv("ORPHEUS_LLM_BACKEND", "mock").strip().lower(),
+            runtime_mode=runtime_mode,
+            llm_backend=llm_backend,
             model=os.getenv("ORPHEUS_MODEL", "gemini-3.6-flash").strip(),
+            execution_profile=execution_profile,
             google_cloud_project=(os.getenv("GOOGLE_CLOUD_PROJECT") or None),
             google_cloud_location=os.getenv("GOOGLE_CLOUD_LOCATION", "global").strip(),
             firestore_enabled=_as_bool(os.getenv("ORPHEUS_FIRESTORE_ENABLED")),
@@ -59,6 +75,10 @@ class Settings:
         if self.llm_backend not in {"mock", "gemini_api", "vertex_ai"}:
             errors.append(
                 "ORPHEUS_LLM_BACKEND must be mock, gemini_api, or vertex_ai"
+            )
+        if self.execution_profile not in {"free_safe", "parallel"}:
+            errors.append(
+                "ORPHEUS_EXECUTION_PROFILE must be free_safe or parallel"
             )
         if not self.model:
             errors.append("ORPHEUS_MODEL is required")
@@ -90,5 +110,16 @@ class Settings:
                 os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
             ),
             "vertex_project": bool(self.google_cloud_project),
+        }
+        data["execution_behavior"] = {
+            "all_specialists_enabled": True,
+            "squad_concurrency": (
+                "sequential" if self.execution_profile == "free_safe" else "parallel"
+            ),
+            "purpose": (
+                "avoid local/free-tier burst failures"
+                if self.execution_profile == "free_safe"
+                else "maximize cloud throughput"
+            ),
         }
         return data

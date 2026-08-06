@@ -14,6 +14,10 @@ APP_NAME = "agent_app"
 MAX_TEXT_LENGTH = 12_000
 MAX_SERIALIZED_LENGTH = 24_000
 IDENTIFIER_PATTERN = re.compile(r"[^a-zA-Z0-9_.:-]+")
+GOOGLE_KEY_PATTERN = re.compile(r"\b(?:AIza|AQ\.)[A-Za-z0-9._-]{18,}\b")
+SECRET_ASSIGNMENT_PATTERN = re.compile(
+    r"(?i)\b(api[_ -]?key|authorization|bearer|token)\s*[:=]\s*([^\s,;]+)"
+)
 
 
 def adk_dependency_available() -> bool:
@@ -29,6 +33,15 @@ def _truncate(value: str, limit: int = MAX_TEXT_LENGTH) -> str:
     if len(value) <= limit:
         return value
     return value[: limit - 24] + "… [truncated]"
+
+
+def _redact_runtime_text(value: Any, limit: int = 2_000) -> str:
+    """Remove common credential shapes from diagnostic text before browser output."""
+
+    message = _truncate(str(value or ""), limit)
+    message = GOOGLE_KEY_PATTERN.sub("[redacted-key]", message)
+    message = SECRET_ASSIGNMENT_PATTERN.sub(r"\1=[redacted]", message)
+    return message
 
 
 def _json_safe(value: Any, *, depth: int = 0) -> Any:
@@ -95,6 +108,143 @@ def _iso_timestamp(value: Any) -> str:
 def _sanitize_identifier(value: str | None, fallback: str) -> str:
     cleaned = IDENTIFIER_PATTERN.sub("-", (value or "").strip()).strip("-._:")
     return (cleaned or fallback)[:120]
+
+
+def _exception_leaves(exc: BaseException, *, depth: int = 0) -> list[BaseException]:
+    """Flatten ExceptionGroup/TaskGroup wrappers into concrete leaf failures."""
+
+    if depth > 8:
+        return [exc]
+    nested = getattr(exc, "exceptions", None)
+    if nested:
+        leaves: list[BaseException] = []
+        for child in nested:
+            if isinstance(child, BaseException):
+                leaves.extend(_exception_leaves(child, depth=depth + 1))
+        return leaves or [exc]
+    cause = getattr(exc, "__cause__", None)
+    if isinstance(cause, BaseException) and cause is not exc:
+        return _exception_leaves(cause, depth=depth + 1)
+    return [exc]
+
+
+def serialize_runtime_exception(exc: BaseException) -> dict[str, Any]:
+    """Return a safe, actionable diagnosis for ADK and TaskGroup failures."""
+
+    leaves = _exception_leaves(exc)
+    details: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for leaf in leaves:
+        item = {
+            "type": type(leaf).__name__,
+            "message": _redact_runtime_text(leaf),
+        }
+        signature = (item["type"], item["message"])
+        if signature in seen:
+            continue
+        seen.add(signature)
+        details.append(item)
+        if len(details) >= 8:
+            break
+
+    combined = " ".join(
+        f"{item['type']} {item['message']}" for item in details
+    ).lower()
+    classification = "runtime_error"
+    retryable = False
+    recovery = (
+        "Revisa la causa concreta mostrada, conserva la sesión y vuelve a ejecutar "
+        "después de corregir la configuración o herramienta indicada."
+    )
+
+    if any(token in combined for token in (
+        "429",
+        "resource_exhausted",
+        "quota",
+        "rate limit",
+        "too many requests",
+    )):
+        classification = "quota_or_rate_limit"
+        retryable = True
+        recovery = (
+            "Usa ORPHEUS_EXECUTION_PROFILE=free_safe, espera el período indicado por "
+            "el proveedor y reintenta la misma sesión. No lances agentes en paralelo "
+            "con una cuota gratuita limitada."
+        )
+    elif any(token in combined for token in (
+        "401",
+        "403",
+        "unauthenticated",
+        "permission_denied",
+        "api key not valid",
+        "invalid api key",
+        "permission denied",
+    )):
+        classification = "authentication_or_permission"
+        recovery = (
+            "Revoca cualquier clave expuesta, crea una nueva y confirma que Gemini API "
+            "esté habilitada para esa clave. No pegues la clave en el chat ni en GitHub."
+        )
+    elif any(token in combined for token in (
+        "404",
+        "model not found",
+        "not found for api version",
+        "unsupported model",
+        "unknown model",
+    )):
+        classification = "model_configuration"
+        recovery = (
+            "Comprueba ORPHEUS_MODEL y usa un identificador disponible para tu cuenta "
+            "y backend; reinicia el servidor después de cambiarlo."
+        )
+    elif any(token in combined for token in (
+        "timeout",
+        "timed out",
+        "connection reset",
+        "connection refused",
+        "name resolution",
+        "dns",
+        "network",
+        "ssl",
+    )):
+        classification = "network_or_timeout"
+        retryable = True
+        recovery = (
+            "Comprueba la conexión, espera unos segundos y reintenta. La sesión queda "
+            "identificada para que el fallo sea auditable."
+        )
+    elif any(token in combined for token in (
+        "context length",
+        "maximum context",
+        "token limit",
+        "max output",
+    )):
+        classification = "context_or_output_limit"
+        recovery = (
+            "Reduce el tamaño de la misión o de las salidas intermedias y vuelve a "
+            "ejecutar sin eliminar la evidencia ya producida."
+        )
+
+    if not details:
+        details = [{"type": type(exc).__name__, "message": "Fallo sin detalle público."}]
+
+    first = details[0]
+    if len(details) == 1:
+        summary = first["message"] or first["type"]
+    else:
+        summary = (
+            f"{len(details)} fallos internos detectados; causa principal: "
+            f"{first['type']}: {first['message']}"
+        )
+
+    return {
+        "error_code": classification,
+        "error_type": type(exc).__name__,
+        "error_message": _truncate(summary, 2_000),
+        "error_details": details,
+        "retryable": retryable,
+        "recovery": recovery,
+    }
 
 
 def serialize_adk_event(event: Any, *, sequence: int) -> dict[str, Any]:
@@ -202,7 +352,9 @@ def serialize_adk_event(event: Any, *, sequence: int) -> dict[str, Any]:
         "artifact_delta": _bounded_payload(artifact_delta) if artifact_delta else {},
         "attachments": attachments,
         "error_code": getattr(event, "error_code", None),
-        "error_message": _truncate(str(getattr(event, "error_message", "") or "")),
+        "error_message": _redact_runtime_text(
+            getattr(event, "error_message", "") or ""
+        ),
     }
 
 
@@ -237,6 +389,12 @@ class AdkRuntimeBridge:
             "backend": settings.llm_backend,
             "model": settings.model,
             "runtime_mode": settings.runtime_mode,
+            "execution_profile": settings.execution_profile,
+            "squad_concurrency": (
+                "sequential"
+                if settings.execution_profile == "free_safe"
+                else "parallel"
+            ),
             "validation_errors": errors,
             "credentials_present": settings.public_summary()["credentials_present"],
             "stream_endpoint": "/adk/stream",
@@ -300,6 +458,7 @@ class AdkRuntimeBridge:
             raise ValueError("A non-empty goal is required")
 
         runner, session_service = await self._ensure_runtime()
+        settings = Settings.from_env()
         resolved_user_id = _sanitize_identifier(user_id, "orpheus-demo-user")
         resolved_session_id = _sanitize_identifier(
             session_id,
@@ -316,6 +475,12 @@ class AdkRuntimeBridge:
             "session_id": resolved_session_id,
             "user_id": resolved_user_id,
             "app_name": APP_NAME,
+            "execution_profile": settings.execution_profile,
+            "squad_concurrency": (
+                "sequential"
+                if settings.execution_profile == "free_safe"
+                else "parallel"
+            ),
             "message": "Real Google ADK execution started.",
         }
 

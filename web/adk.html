@@ -8,57 +8,64 @@
   <link rel="stylesheet" href="/assets/adk.css">
   <link rel="stylesheet" href="/assets/adk-readable.css">
   <link rel="stylesheet" href="/assets/adk-product.css">
+  <link rel="stylesheet" href="/assets/adk-shell.css">
 </head>
 <body>
-  <div class="app">
-    <aside class="left-rail">
+  <div id="appShell" class="app">
+    <aside id="leftRail" class="left-rail" aria-label="Navegación y Constelación">
       <div class="brand">
         <div class="brand-mark">Ω</div>
-        <div>
+        <div class="brand-copy">
           <strong>ORPHEUS Ω</strong>
-          <span>Autonomous Mission System · live ADK</span>
+          <span>Autonomous Mission System</span>
         </div>
       </div>
 
-      <button id="newMission" class="new-mission" type="button"><span>＋</span>Nueva misión</button>
+      <button id="newMission" class="new-mission" type="button" title="Nueva misión">
+        <span class="glyph">＋</span><span class="rail-label">Nueva misión</span>
+      </button>
 
       <nav class="rail-nav" aria-label="Navegación">
-        <a class="nav-link active" href="/adk"><span class="glyph">◌</span>Mission Chat real</a>
-        <a class="nav-link" href="/docs" target="_blank" rel="noreferrer"><span class="glyph">⌁</span>API y endpoints</a>
-        <a class="nav-link" href="/architecture/agents" target="_blank" rel="noreferrer"><span class="glyph">◇</span>Topología JSON</a>
+        <a class="nav-link active" href="/adk" title="Mission Chat real"><span class="glyph">◌</span><span class="rail-label">Mission Chat real</span></a>
+        <a class="nav-link" href="/docs" target="_blank" rel="noreferrer" title="API y endpoints"><span class="glyph">⌁</span><span class="rail-label">API y endpoints</span></a>
+        <a class="nav-link" href="/architecture/agents" target="_blank" rel="noreferrer" title="Topología JSON"><span class="glyph">◇</span><span class="rail-label">Topología JSON</span></a>
       </nav>
 
       <section class="rail-section" aria-labelledby="constellationTitle">
         <div class="rail-heading">
-          <strong id="constellationTitle">Constelación activa</strong>
-          <span id="agentCount">0 agentes</span>
+          <strong id="constellationTitle" class="rail-label">Constelación activa</strong>
+          <span id="agentCount" class="rail-label">0 agentes</span>
         </div>
         <div id="agentList" class="agent-list">
           <div class="agent-row active">
             <div class="agent-avatar">Ω</div>
-            <div class="agent-copy"><strong>Cargando equipo</strong><span>Consultando topología real</span></div>
+            <div class="agent-copy rail-label"><strong>Cargando equipo</strong><span>Consultando topología real</span></div>
             <i class="agent-dot"></i>
           </div>
         </div>
       </section>
 
       <div class="rail-footer">
-        <div id="runnerMini" class="runner-mini">
+        <div id="runnerMini" class="runner-mini" title="Estado del Google ADK Runner">
           <i></i>
-          <div><strong>Google ADK Runner</strong><span id="runnerMiniLabel">Verificando configuración</span></div>
+          <div class="rail-label"><strong>Google ADK Runner</strong><span id="runnerMiniLabel">Verificando configuración</span></div>
         </div>
       </div>
     </aside>
 
     <main class="workspace">
       <header class="topbar">
-        <div class="model-id">
-          <div class="model-spark">✦</div>
-          <div><strong id="model">ORPHEUS Ω</strong><span id="backend">Backend pendiente</span></div>
+        <div class="topbar-left">
+          <button id="leftRailToggle" class="panel-toggle" type="button" aria-controls="leftRail" aria-expanded="true" title="Colapsar navegación">☰</button>
+          <div class="model-id">
+            <div class="model-spark">✦</div>
+            <div><strong id="model">ORPHEUS Ω</strong><span id="backend">Backend pendiente</span></div>
+          </div>
         </div>
         <div class="top-actions">
           <span id="readyPill" class="status-pill"><i></i><span>Verificando</span></span>
-          <a class="top-link" href="/docs" target="_blank" rel="noreferrer">Inspeccionar API</a>
+          <button id="inspectorToggle" class="panel-toggle" type="button" aria-controls="inspector" aria-expanded="true" title="Colapsar inspector">▥</button>
+          <a class="top-link" href="/docs" target="_blank" rel="noreferrer">API</a>
         </div>
       </header>
 
@@ -99,7 +106,7 @@
       </div>
     </main>
 
-    <aside class="inspector">
+    <aside id="inspector" class="inspector" aria-label="Inspector de evidencia">
       <div class="inspector-title"><strong>Inspector de evidencia</strong><span>prueba, no decoración</span></div>
 
       <section class="inspector-card">
@@ -110,6 +117,13 @@
           <div class="proof"><span>Errores</span><strong id="errorMetric">0</strong></div>
           <div class="proof"><span>Final KIRA</span><strong id="finalMetric">No</strong></div>
         </div>
+      </section>
+
+      <section class="inspector-card">
+        <h3>Ejecución</h3>
+        <div class="fact-row"><span>Perfil</span><strong id="executionProfile">—</strong></div>
+        <div class="fact-row"><span>Escuadrones</span><strong id="squadConcurrency">—</strong></div>
+        <p id="executionProfileNote" class="truth-copy">El perfil local gratuito conserva los 18 agentes, pero evita ráfagas paralelas.</p>
       </section>
 
       <section class="inspector-card">
@@ -160,7 +174,10 @@
         <button id="refreshButton" class="rail-action" type="button">Revisar Runner</button>
       </div>
     </aside>
+
+    <button id="panelBackdrop" class="panel-backdrop" type="button" aria-label="Cerrar paneles laterales"></button>
   </div>
   <script src="/assets/adk.js" defer></script>
+  <script src="/assets/adk-shell.js" defer></script>
 </body>
 </html>
