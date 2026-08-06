@@ -3,89 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="ORPHEUS Ω — agente autónomo de arqueología de invenciones">
-  <title>ORPHEUS Ω</title>
-  <link rel="stylesheet" href="/assets/app.css">
+  <meta http-equiv="refresh" content="0; url=/adk">
+  <meta name="robots" content="noindex">
+  <title>ORPHEUS Ω · Abriendo Mission Chat</title>
+  <script>window.location.replace('/adk');</script>
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; background: #f7f8fb; color: #172033; }
+    main { width: min(560px, calc(100% - 40px)); padding: 32px; border: 1px solid #e3e7ee; border-radius: 22px; background: white; box-shadow: 0 18px 54px rgba(30,42,66,.08); text-align: center; }
+    a { color: #425979; font-weight: 750; }
+  </style>
 </head>
 <body>
-  <div class="app-shell">
-    <aside class="sidebar" id="sidebar">
-      <div class="brand"><div class="brand-mark">Ω</div><div><strong>ORPHEUS Ω</strong><span>Autonomous Invention Archaeologist</span></div></div>
-      <button class="new-mission" id="newMission"><span class="icon">＋</span>Nueva misión</button>
-      <nav class="nav" aria-label="Navegación principal">
-        <button class="nav-item active" data-view="chat"><span>◌</span>Chat</button>
-        <button class="nav-item" data-view="opportunities"><span>⌁</span>Oportunidades</button>
-        <button class="nav-item" data-view="evidence"><span>◇</span>Evidencia</button>
-        <button class="nav-item" data-view="history"><span>◷</span>Historial</button>
-        <button class="nav-item" data-view="agents"><span>◎</span>Agentes</button>
-      </nav>
-      <section class="recent-section"><div class="section-label">CICLOS RECIENTES</div><div id="recentCycles" class="recent-list"><div class="empty-mini">Sin ciclos todavía</div></div></section>
-      <div class="sidebar-footer"><div class="human-card"><div class="human-avatar">AG</div><div><strong>Dr. Arisnachy</strong><span>Control humano final</span></div><button aria-label="Configuración">⋯</button></div></div>
-    </aside>
-
-    <main class="main">
-      <header class="topbar">
-        <button class="mobile-menu" id="mobileMenu" aria-label="Abrir menú">☰</button>
-        <button class="model-button"><span class="model-icon">✦</span><span><small>Modelo operativo</small><strong>ORPHEUS Autonomous v0.4</strong></span><span class="chevron">⌄</span></button>
-        <div class="project-title"><small>OBJETIVO ACTUAL</small><strong id="topGoal">Preparando misión…</strong></div>
-        <button class="autonomy-pill" id="autoBadge"><i></i><span>Modo autónomo</span></button>
-        <a class="icon-button" href="/autonomy/export/decision.md" title="Descargar memo">⇩</a>
-        <button class="profile-button">AG</button>
-      </header>
-
-      <div class="workspace">
-        <section class="conversation">
-          <div class="conversation-scroll" id="conversationScroll">
-            <div class="thread">
-              <div class="user-message"><div class="user-bubble"><p id="userGoal">Define una misión y ORPHEUS comenzará a trabajar.</p><span id="goalTime">Dirección humana</span></div><div class="small-avatar">AG</div></div>
-              <article class="assistant-message">
-                <div class="assistant-avatar">Ω</div>
-                <div class="assistant-content">
-                  <div class="message-meta"><strong>KIRA / ORPHEUS Ω</strong><span id="assistantTime">ahora</span></div>
-                  <p class="assistant-intro" id="assistantIntro">Observaré el objetivo, ejecutaré las herramientas pertinentes y separaré los resultados verificados de las hipótesis.</p>
-                  <section class="run-strip">
-                    <div class="run-status"><span class="run-symbol" id="runSymbol">✦</span><div><strong id="runState">Preparando ciclo autónomo</strong><small id="cycleMeta">Sin ejecución todavía</small></div></div>
-                    <div class="run-progress"><div class="progress-label"><span id="progressLabel">0 / 0 etapas</span><span id="cycleNo">Ciclo 0</span></div><div class="progress-track"><div class="progress-fill" id="progressFill"></div></div></div>
-                  </section>
-
-                  <section class="output-card">
-                    <header class="output-header"><div><div class="eyebrow">SALIDA AUTÓNOMA</div><h1 id="decisionTitle">Decisión recomendada por KIRA</h1></div><div class="header-actions"><span class="mode-chip" id="modeChip">ANALIZANDO</span><a href="/autonomy/export/state.json" class="subtle-button">JSON</a><a href="/autonomy/export/decision.md" class="subtle-button">Memo</a></div></header>
-                    <div class="status-banner" id="statusBanner"><span class="status-icon">◌</span><div><strong id="technicalStatus">Esperando evaluación</strong><p id="statusReason">ORPHEUS clasificará el objetivo antes de ejecutar herramientas.</p></div></div>
-                    <nav class="tabs" aria-label="Vistas de salida"><button class="tab active" data-tab="decision">Decisión</button><button class="tab" data-tab="opportunities">Oportunidades</button><button class="tab" data-tab="evidence">Evidencia</button><button class="tab" data-tab="history">Historial</button></nav>
-
-                    <div class="tab-panel active" id="tab-decision">
-                      <div class="decision-grid">
-                        <section class="decision-main"><div class="panel-heading"><span>RECOMENDACIÓN</span><span id="decisionMode">—</span></div><h2 id="recommendation">Todavía no hay una recomendación.</h2><p id="humanBenefit">El beneficio humano aparecerá tras completar el ciclo.</p><div class="beneficiary-row" id="beneficiaries"></div><div class="why-card"><strong>Por qué esta ruta</strong><ul id="whyNow"><li>Esperando análisis.</li></ul></div></section>
-                        <aside class="decision-side"><div class="metric-grid"><div class="metric-card"><span>Temperatura</span><strong id="metricTemp">—</strong><small>interna estimada</small></div><div class="metric-card"><span>Reducción</span><strong id="metricDelta">—</strong><small>delta térmico</small></div><div class="metric-card"><span>Incertidumbre</span><strong id="metricUncertainty">—</strong><small>declarada</small></div><div class="metric-card"><span>Energía</span><strong id="metricEnergy">—</strong><small>consumo externo</small></div></div><div class="next-action-card"><span>PRÓXIMA DECISIÓN HUMANA</span><strong id="nextAction">Sin acciones pendientes</strong><p>ORPHEUS no ejecutará contacto, publicación, contrato o cobro sin aprobación.</p></div></aside>
-                      </div>
-                      <section class="candidate-section"><div class="section-heading"><div><span>RESULTADO TÉCNICO</span><h3>Candidatos evaluados</h3></div><span class="verified-label" id="missionStatus">SIN EJECUTAR</span></div><div class="candidate-table"><div class="candidate-head"><span>Candidato</span><span>Temperatura</span><span>Reducción</span><span>Puntuación</span><span>Estado</span></div><div id="candidateRows" class="candidate-body"><div class="table-empty">No hay resultados técnicos.</div></div></div></section>
-                      <section class="completed-work"><div class="section-heading"><div><span>TRABAJO REALIZADO</span><h3>Artefactos locales y seguros</h3></div></div><div class="action-grid" id="completedActions"></div></section>
-                    </div>
-
-                    <div class="tab-panel" id="tab-opportunities"><div class="section-heading padded"><div><span>RADAR DE VALOR</span><h3>Rutas de beneficio y sostenibilidad</h3></div><span class="hypothesis-label">CIFRAS HIPOTÉTICAS</span></div><div class="opportunity-grid" id="opportunityGrid"></div></div>
-                    <div class="tab-panel" id="tab-evidence"><div class="evidence-layout"><section><div class="section-heading"><div><span>TRAZABILIDAD</span><h3>Salida por agente</h3></div></div><div class="pipeline-output" id="pipelineOutput"></div></section><aside><div class="limits-card"><span>LÍMITES DECLARADOS</span><p id="technicalLimits">Pendiente de evaluación.</p></div><div class="disclaimer-card" id="disclaimer">Las cifras comerciales deben tratarse como hipótesis hasta disponer de evidencia externa.</div></aside></div></div>
-                    <div class="tab-panel" id="tab-history"><div class="section-heading padded"><div><span>MEMORIA OPERATIVA</span><h3>Historial de ciclos</h3></div></div><div class="history-table" id="historyTable"></div></div>
-                  </section>
-                </div>
-              </article>
-            </div>
-          </div>
-          <div class="composer-shell"><form class="composer" id="composerForm"><button type="button" class="attach-button" aria-label="Adjuntar">＋</button><textarea id="messageInput" rows="1" placeholder="Asigna una misión a KIRA y ORPHEUS…"></textarea><button type="submit" class="send-button" aria-label="Enviar">↑</button></form><p>ORPHEUS distingue evidencia, hipótesis y acciones sujetas a aprobación humana.</p></div>
-        </section>
-
-        <aside class="control-rail">
-          <section class="control-card run-control"><div class="control-header"><div><span>EJECUCIÓN AUTÓNOMA</span><h2 id="railStatus">Inactiva</h2></div><span class="live-dot" id="liveDot"></span></div><p id="railGoal">Preparando objetivo…</p><div class="control-buttons"><button class="primary-button" id="runNow">Ejecutar ahora</button><button class="secondary-button" id="toggleAutonomy">Pausar</button></div></section>
-          <section class="rail-section"><div class="rail-title"><strong>Etapas del ciclo</strong><span id="stageCount">0/0</span></div><div class="stage-list" id="stageList"></div></section>
-          <section class="rail-section"><div class="rail-title"><strong>Aprobaciones humanas</strong><span id="approvalCount">0</span></div><div class="approval-list" id="approvalList"><div class="empty-rail">No hay decisiones pendientes.</div></div></section>
-          <section class="rail-section collapsed-on-small"><div class="rail-title"><strong>Equipo Ω</strong><span id="agentCount">0</span></div><div class="agent-list" id="agentList"></div></section>
-          <section class="rail-section collapsed-on-small"><div class="rail-title"><strong>Actividad</strong><span>en vivo</span></div><div class="event-list" id="eventList"></div></section>
-        </aside>
-      </div>
-    </main>
-  </div>
-
-  <div class="modal-backdrop" id="decisionModal" hidden><div class="modal"><button class="modal-close" id="modalClose">×</button><span class="modal-eyebrow">DECISIÓN HUMANA</span><h2 id="modalTitle">Revisar acción</h2><p id="modalDescription"></p><textarea id="decisionNote" rows="4" placeholder="Nota opcional: alcance, límites o condiciones…"></textarea><div class="modal-actions"><button class="danger-button" id="declineAction">Rechazar</button><button class="primary-button" id="approveAction">Aprobar</button></div></div></div>
-  <div class="toast" id="toast" role="status"></div>
-  <script src="/assets/app.js" defer></script>
+  <main>
+    <h1>Abriendo la ejecución ADK real…</h1>
+    <p>La interfaz principal ahora es Mission Chat, con eventos reales de Gemini, herramientas, auditoría y evidencia.</p>
+    <p><a href="/adk">Entrar a ORPHEUS Ω</a></p>
+  </main>
 </body>
 </html>
