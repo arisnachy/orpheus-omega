@@ -30,6 +30,12 @@ def _model() -> Gemini:
     )
 
 
+def _squad_type() -> type[ParallelAgent] | type[SequentialAgent]:
+    """Use sequential squads locally on free Gemini while preserving every agent."""
+
+    return SequentialAgent if settings.execution_profile == "free_safe" else ParallelAgent
+
+
 TRUTH_BOUNDARY = """
 Non-negotiable truth boundary:
 - Keep verified evidence, model inference, commercial hypothesis, and unknowns separate.
@@ -52,8 +58,10 @@ orion = LlmAgent(
         "and create a compact mission contract. Include: objective, intended beneficiary, "
         "primary benefit metric, baseline, measurable victory conditions, constraints, "
         "available evidence, missing evidence, and the smallest useful next experiment. "
-        "Ask a question only when the answer would materially change the contract. "
-        "Return structured Markdown that downstream agents can use.\n\n" + TRUTH_BOUNDARY
+        "Do not stop the workflow merely to ask about a parameter that can be represented as "
+        "two explicit conditional routes. Ask a question only when proceeding would be unsafe, "
+        "irreversible, or logically impossible. Return structured Markdown that downstream agents "
+        "can use.\n\n" + TRUTH_BOUNDARY
     ),
     output_key="mission_contract",
 )
@@ -107,9 +115,14 @@ vega = LlmAgent(
 )
 
 
-evidence_squad = ParallelAgent(
+evidence_squad = _squad_type()(
     name="evidence_squad",
-    description="Runs provenance, risk, and verification analysis concurrently.",
+    description=(
+        "Runs provenance, risk, and verification analysis sequentially for local/free-tier "
+        "stability."
+        if settings.execution_profile == "free_safe"
+        else "Runs provenance, risk, and verification analysis concurrently."
+    ),
     sub_agents=[vigia, nyx, vega],
 )
 
@@ -123,15 +136,20 @@ atlas = LlmAgent(
         "{risk_map}, and {evidence_matrix}. Propose two to four candidate routes, not one vague "
         "idea. For each candidate provide mechanism, required inputs, expected benefit, cost "
         "drivers, dependencies, test method, rejection rule, and what can be built locally. "
-        "Rank candidates provisionally, but clearly state that FORJA must harden the implementation "
-        "contract and SPARK must perform applicable deterministic verification before any technical "
-        "winner is declared.\n\n" + TRUTH_BOUNDARY
+        "Use headings exactly in the form '### CANDIDATO 1: Name' so the product interface can "
+        "present the routes as comparable cards. Rank candidates provisionally, but clearly state "
+        "that FORJA must harden the implementation contract and SPARK must perform applicable "
+        "deterministic verification before any technical winner is declared.\n\n" + TRUTH_BOUNDARY
     ),
     output_key="candidate_architecture",
 )
 
 
-forja_squad = build_forja_squad(_model, TRUTH_BOUNDARY)
+forja_squad = build_forja_squad(
+    _model,
+    TRUTH_BOUNDARY,
+    settings.execution_profile,
+)
 
 
 spark = LlmAgent(
@@ -154,7 +172,11 @@ spark = LlmAgent(
 )
 
 
-audit_squad = build_audit_squad(_model, TRUTH_BOUNDARY)
+audit_squad = build_audit_squad(
+    _model,
+    TRUTH_BOUNDARY,
+    settings.execution_profile,
+)
 helix = build_helix_agent(_model, TRUTH_BOUNDARY)
 
 
@@ -234,9 +256,14 @@ vanta = LlmAgent(
 )
 
 
-decision_squad = ParallelAgent(
+decision_squad = _squad_type()(
     name="decision_squad",
-    description="Runs sustainability, safety, provenance, and fallback analysis concurrently.",
+    description=(
+        "Runs sustainability, safety, provenance, and fallback analysis sequentially for "
+        "local/free-tier stability."
+        if settings.execution_profile == "free_safe"
+        else "Runs sustainability, safety, provenance, and fallback analysis concurrently."
+    ),
     sub_agents=[aureus, bastion, echo, rift, vanta],
 )
 
@@ -267,9 +294,9 @@ kira = LlmAgent(
 root_agent = SequentialAgent(
     name="orpheus_omega",
     description=(
-        "A real Google ADK workflow: contract, parallel evidence, candidate design, parallel FORJA "
-        "engineering, deterministic execution, parallel evolutionary audit, HELIX scoring, parallel "
-        "decision controls, and KIRA delivery."
+        "A real Google ADK workflow: contract, evidence, candidate design, FORJA engineering, "
+        "deterministic execution, evolutionary audit, HELIX scoring, decision controls, and KIRA "
+        f"delivery. Squad execution profile: {settings.execution_profile}."
     ),
     sub_agents=[
         orion,
