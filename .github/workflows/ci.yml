@@ -44,6 +44,7 @@ jobs:
           python -c "from agent_app.agent import app, root_agent; assert len(root_agent.sub_agents) == 9; print(app.name, root_agent.name, len(root_agent.sub_agents))"
           python -c "from orpheus.agent_topology import get_agent_topology; topology = get_agent_topology(); assert topology['specialist_agent_count'] == 18; assert topology['parallel_groups'] == 4; print(topology['framework'], topology['specialist_agent_count'])"
           python -c "from app.main import adk_readiness; state = adk_readiness(); assert not state['ready']; assert state['backend'] == 'mock'; print('honest mock-mode ADK gate: OK')"
+          ORPHEUS_LLM_BACKEND=gemini_api GEMINI_API_KEY=test-only-key ORPHEUS_EXECUTION_PROFILE=free_safe python -c "from agent_app.agent import root_agent; squads = [agent for agent in root_agent.sub_agents if agent.name in {'evidence_squad','forja_squad','audit_squad','decision_squad'}]; assert len(squads) == 4; assert all(type(agent).__name__ == 'SequentialAgent' for agent in squads); print('free-safe real graph: OK')"
 
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
@@ -58,6 +59,7 @@ jobs:
         run: |
           node --check web/app.js
           node --check web/adk.js
+          node --check web/adk-shell.js
 
       - name: Verify default live UI and proof markers
         run: |
@@ -73,12 +75,18 @@ jobs:
           for marker in (
               '/assets/adk.css',
               '/assets/adk-readable.css',
+              '/assets/adk-product.css',
+              '/assets/adk-shell.css',
               '/assets/adk.js',
+              '/assets/adk-shell.js',
               'agentList',
               'eventMetric',
               'Mission Chat real',
               'Crossref REST API',
               'Crossref en vivo',
+              'leftRailToggle',
+              'inspectorToggle',
+              'executionProfile',
           ):
               if marker not in adk:
                   raise SystemExit(f'missing live UI proof marker: {marker}')
@@ -88,12 +96,32 @@ jobs:
               if marker not in js:
                   raise SystemExit(f'missing live integration marker in web/adk.js: {marker}')
 
+          shell_js = Path('web/adk-shell.js').read_text(encoding='utf-8')
+          for marker in ('left-collapsed', 'right-collapsed', 'appendRuntimeErrorCard', 'refs.goal.value = ""'):
+              if marker not in shell_js:
+                  raise SystemExit(f'missing shell integration marker: {marker}')
+
+          shell_css = Path('web/adk-shell.css').read_text(encoding='utf-8')
+          for marker in ('.app.left-collapsed', '.app.right-collapsed', '.runtime-error-card'):
+              if marker not in shell_css:
+                  raise SystemExit(f'missing shell style marker: {marker}')
+
           tools = Path('orpheus/tools.py').read_text(encoding='utf-8')
           for marker in ('search_scholarly_evidence', 'api.crossref.org/works', 'live_research'):
               if marker not in tools:
                   raise SystemExit(f'missing public research marker in orpheus/tools.py: {marker}')
 
-          print('default ADK UI and public research proof: OK')
+          settings = Path('orpheus/settings.py').read_text(encoding='utf-8')
+          for marker in ('ORPHEUS_EXECUTION_PROFILE', 'free_safe', 'execution_behavior'):
+              if marker not in settings:
+                  raise SystemExit(f'missing free-safe runtime marker: {marker}')
+
+          bridge = Path('orpheus/adk_bridge.py').read_text(encoding='utf-8')
+          for marker in ('serialize_runtime_exception', '_exception_leaves', 'quota_or_rate_limit'):
+              if marker not in bridge:
+                  raise SystemExit(f'missing diagnostic marker: {marker}')
+
+          print('default ADK UI, free-safe runtime, and public research proof: OK')
           PY
 
       - name: Publish machine-readable commit status
