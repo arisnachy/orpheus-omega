@@ -6,13 +6,24 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class AdkPresentationContractTests(unittest.TestCase):
-    def test_html_loads_product_presentation_layer(self):
+    def test_html_loads_product_and_collapsible_shell_layers(self):
         html = (ROOT / "web" / "adk.html").read_text(encoding="utf-8")
-        self.assertIn('/assets/adk-product.css', html)
-        self.assertIn('Cápsulas de trabajo', html)
-        self.assertIn('Candidatos comparables', html)
-        self.assertIn('Final KIRA', html)
-        self.assertIn('Razonamiento privado', html)
+        for marker in (
+            '/assets/adk-product.css',
+            '/assets/adk-shell.css',
+            '/assets/adk.js',
+            '/assets/adk-shell.js',
+            'leftRailToggle',
+            'inspectorToggle',
+            'panelBackdrop',
+            'executionProfile',
+            'squadConcurrency',
+            'Cápsulas de trabajo',
+            'Candidatos comparables',
+            'Final KIRA',
+            'Razonamiento privado',
+        ):
+            self.assertIn(marker, html)
 
     def test_javascript_renders_markdown_and_collapses_raw_payloads(self):
         javascript = (ROOT / "web" / "adk.js").read_text(encoding="utf-8")
@@ -51,8 +62,23 @@ class AdkPresentationContractTests(unittest.TestCase):
         ):
             self.assertIn(marker, javascript)
 
-    def test_styles_cover_capsules_markdown_candidates_and_research(self):
-        css = (ROOT / "web" / "adk-product.css").read_text(encoding="utf-8")
+    def test_shell_controller_clears_composer_and_formats_runtime_errors(self):
+        javascript = (ROOT / "web" / "adk-shell.js").read_text(encoding="utf-8")
+        for marker in (
+            'left-collapsed',
+            'right-collapsed',
+            'mobile-left-open',
+            'mobile-right-open',
+            'appendRuntimeErrorCard',
+            'record.error_details',
+            'refs.goal.value = ""',
+            'ORPHEUS',
+            '/adk/readiness',
+        ):
+            self.assertIn(marker, javascript)
+
+    def test_styles_cover_capsules_markdown_candidates_research_and_shell(self):
+        product_css = (ROOT / "web" / "adk-product.css").read_text(encoding="utf-8")
         for marker in (
             '.agent-capsule',
             '.capsule-activity',
@@ -62,7 +88,18 @@ class AdkPresentationContractTests(unittest.TestCase):
             '.research-board',
             '.research-card',
         ):
-            self.assertIn(marker, css)
+            self.assertIn(marker, product_css)
+
+        shell_css = (ROOT / "web" / "adk-shell.css").read_text(encoding="utf-8")
+        for marker in (
+            '.app.left-collapsed',
+            '.app.right-collapsed',
+            '.panel-toggle',
+            '.panel-backdrop',
+            '.runtime-error-card',
+            '@media (max-width: 820px)',
+        ):
+            self.assertIn(marker, shell_css)
 
 
 if __name__ == "__main__":
