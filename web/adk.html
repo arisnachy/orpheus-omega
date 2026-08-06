@@ -3,9 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="ORPHEUS Ω — chat autónomo con traza real de Google ADK">
+  <meta name="description" content="ORPHEUS Ω — chat autónomo con traza real de Google ADK y evidencia pública en vivo">
   <title>ORPHEUS Ω · Mission Chat</title>
   <link rel="stylesheet" href="/assets/adk.css">
+  <link rel="stylesheet" href="/assets/adk-readable.css">
 </head>
 <body>
   <div class="app">
@@ -14,15 +15,15 @@
         <div class="brand-mark">Ω</div>
         <div>
           <strong>ORPHEUS Ω</strong>
-          <span>Autonomous Mission System · v0.9</span>
+          <span>Autonomous Mission System · live ADK</span>
         </div>
       </div>
 
       <button id="newMission" class="new-mission" type="button"><span>＋</span>Nueva misión</button>
 
       <nav class="rail-nav" aria-label="Navegación">
-        <a class="nav-link active" href="/adk"><span class="glyph">◌</span>Mission Chat</a>
-        <a class="nav-link" href="/"><span class="glyph">⌁</span>Control autónomo</a>
+        <a class="nav-link active" href="/adk"><span class="glyph">◌</span>Mission Chat real</a>
+        <a class="nav-link" href="/docs" target="_blank" rel="noreferrer"><span class="glyph">⌁</span>API y endpoints</a>
         <a class="nav-link" href="/architecture/agents" target="_blank" rel="noreferrer"><span class="glyph">◇</span>Topología JSON</a>
       </nav>
 
@@ -56,7 +57,7 @@
         </div>
         <div class="top-actions">
           <span id="readyPill" class="status-pill"><i></i><span>Verificando</span></span>
-          <a class="top-link" href="/">Salir al cockpit</a>
+          <a class="top-link" href="/docs" target="_blank" rel="noreferrer">Inspeccionar API</a>
         </div>
       </header>
 
@@ -65,12 +66,16 @@
           <section class="hero">
             <div class="hero-mark">Ω</div>
             <h1>¿Qué misión debe resolver la Constelación?</h1>
-            <p>ORION define la victoria; evidencia y FORJA trabajan en paralelo; SPARK ejecuta; RECURSOR y NÉMESIS intentan destruir los falsos éxitos; HELIX puntúa la prueba; KIRA decide.</p>
+            <p>ORION define la victoria; VIGÍA consulta evidencia pública; FORJA endurece el plan; SPARK ejecuta; RECURSOR y NÉMESIS intentan destruir falsos éxitos; HELIX puntúa; KIRA decide.</p>
             <div class="hero-tags">
-              <span>18 agentes reales</span>
+              <span>18 agentes ADK reales</span>
               <span>4 escuadrones paralelos</span>
+              <span>Crossref en vivo</span>
               <span>Herramientas deterministas</span>
               <span>Sin chain-of-thought público</span>
+            </div>
+            <div class="research-note">
+              La investigación externa gratuita usa metadatos científicos de Crossref. En la traza verás la llamada, la consulta, títulos, autores, años, DOI y URLs. No es navegación web general ni validación automática de una invención.
             </div>
           </section>
         </div>
@@ -83,9 +88,9 @@
 
       <div class="composer-wrap">
         <form id="missionForm" class="composer">
-          <textarea id="goal" maxlength="4000" aria-label="Misión" placeholder="Asigna una misión medible a KIRA y la Constelación…">Convierte una invención técnica abandonada en un paquete de piloto verificable: reconstruye por qué falló, diseña variantes modernas, rechaza las inseguras, produce evidencia y deja cualquier acción externa detrás de aprobación humana.</textarea>
+          <textarea id="goal" maxlength="4000" aria-label="Misión" placeholder="Asigna una misión medible a KIRA y la Constelación…">Investiga y evalúa una solución asequible, fabricable localmente y sin electricidad para conservar alimentos mediante enfriamiento pasivo. Busca evidencia científica actual, muestra DOI y URLs, separa metadatos de validación, ejecuta las herramientas disponibles y no declares éxito sin pruebas.</textarea>
           <div class="composer-bottom">
-            <span id="traceStatus" class="composer-note">La actividad mostrada proviene del Runner real.</span>
+            <span id="traceStatus" class="composer-note">La actividad mostrada proviene del Runner y de herramientas reales.</span>
             <button id="runButton" class="send" type="submit" aria-label="Ejecutar misión" disabled>↑</button>
           </div>
         </form>
@@ -93,7 +98,7 @@
     </main>
 
     <aside class="inspector">
-      <div class="inspector-title"><strong>Inspector de evidencia</strong><span>10/5 interno · 5/5 oficial</span></div>
+      <div class="inspector-title"><strong>Inspector de evidencia</strong><span>prueba, no decoración</span></div>
 
       <section class="inspector-card">
         <h3>Prueba de ejecución</h3>
@@ -112,6 +117,14 @@
         <div class="fact-row"><span>Dependencia ADK</span><strong id="dependency">—</strong></div>
         <div class="fact-row"><span>Sesión</span><strong id="sessionStatus">Nueva</strong></div>
         <ul id="errors" class="error-list"></ul>
+      </section>
+
+      <section class="inspector-card">
+        <h3>Investigación externa</h3>
+        <div class="fact-row"><span>Proveedor</span><strong>Crossref REST API</strong></div>
+        <div class="fact-row"><span>Clave adicional</span><strong>No</strong></div>
+        <div class="fact-row"><span>Alcance</span><strong>Metadatos científicos</strong></div>
+        <p class="truth-copy">Los DOI y registros recuperados son evidencia de descubrimiento. Una coincidencia bibliográfica no valida diseño, seguridad, patente ni mercado.</p>
       </section>
 
       <section class="inspector-card">
