@@ -59,24 +59,41 @@ jobs:
           node --check web/app.js
           node --check web/adk.js
 
-      - name: Verify web asset references and proof UI
+      - name: Verify default live UI and proof markers
         run: |
           python - <<'PY'
           from pathlib import Path
-          expected = {
-              'web/index.html': ('/assets/app.css', '/assets/app.js'),
-              'web/adk.html': ('/assets/adk.css', '/assets/adk.js', 'agentList', 'eventMetric', 'Mission Chat'),
-          }
-          for filename, assets in expected.items():
-              html = Path(filename).read_text(encoding='utf-8')
-              for asset in assets:
-                  if asset not in html:
-                      raise SystemExit(f'missing web asset or proof marker in {filename}: {asset}')
+
+          index = Path('web/index.html').read_text(encoding='utf-8')
+          for marker in ("window.location.replace('/adk')", 'url=/adk'):
+              if marker not in index:
+                  raise SystemExit(f'missing default ADK redirect marker: {marker}')
+
+          adk = Path('web/adk.html').read_text(encoding='utf-8')
+          for marker in (
+              '/assets/adk.css',
+              '/assets/adk-readable.css',
+              '/assets/adk.js',
+              'agentList',
+              'eventMetric',
+              'Mission Chat real',
+              'Crossref REST API',
+              'Crossref en vivo',
+          ):
+              if marker not in adk:
+                  raise SystemExit(f'missing live UI proof marker: {marker}')
+
           js = Path('web/adk.js').read_text(encoding='utf-8')
           for marker in ('/architecture/agents', '/adk/readiness', '/adk/stream', 'recursor_omega', 'nemesis_omega'):
               if marker not in js:
                   raise SystemExit(f'missing live integration marker in web/adk.js: {marker}')
-          print('web asset and proof UI references: OK')
+
+          tools = Path('orpheus/tools.py').read_text(encoding='utf-8')
+          for marker in ('search_scholarly_evidence', 'api.crossref.org/works', 'live_research'):
+              if marker not in tools:
+                  raise SystemExit(f'missing public research marker in orpheus/tools.py: {marker}')
+
+          print('default ADK UI and public research proof: OK')
           PY
 
       - name: Publish machine-readable commit status
