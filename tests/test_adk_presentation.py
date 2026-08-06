@@ -72,7 +72,7 @@ class AdkPresentationContractTests(unittest.TestCase):
             'appendRuntimeErrorCard',
             'record.error_details',
             'refs.goal.value = ""',
-            'ORPHEUS',
+            'Local seguro',
             '/adk/readiness',
         ):
             self.assertIn(marker, javascript)
