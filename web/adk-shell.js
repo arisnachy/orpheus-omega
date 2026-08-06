@@ -25,11 +25,16 @@
   }
 
   function syncDesktopState() {
-    if (!mobileLeft()) {
+    if (mobileLeft()) {
+      shell.classList.remove("left-collapsed");
+    } else {
       shell.classList.toggle("left-collapsed", desktopLeftCollapsed());
       shell.classList.remove("mobile-left-open");
     }
-    if (!mobileRight()) {
+
+    if (mobileRight()) {
+      shell.classList.remove("right-collapsed");
+    } else {
       shell.classList.toggle("right-collapsed", desktopRightCollapsed());
       shell.classList.remove("mobile-right-open");
     }
