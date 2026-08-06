@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="ORPHEUS Ω — chat autónomo con traza real de Google ADK y evidencia pública en vivo">
+  <meta name="description" content="ORPHEUS Ω — chat autónomo con cápsulas de trabajo, candidatos comparables y evidencia pública en vivo">
   <title>ORPHEUS Ω · Mission Chat</title>
   <link rel="stylesheet" href="/assets/adk.css">
   <link rel="stylesheet" href="/assets/adk-readable.css">
+  <link rel="stylesheet" href="/assets/adk-product.css">
 </head>
 <body>
   <div class="app">
@@ -66,19 +67,20 @@
           <section class="hero">
             <div class="hero-mark">Ω</div>
             <h1>¿Qué misión debe resolver la Constelación?</h1>
-            <p>ORION define la victoria; VIGÍA consulta evidencia pública; FORJA endurece el plan; SPARK ejecuta; RECURSOR y NÉMESIS intentan destruir falsos éxitos; HELIX puntúa; KIRA decide.</p>
+            <p>La ejecución aparece en cápsulas públicas: acción actual, herramientas, evidencia, candidatos, rechazos y entregas. El razonamiento privado no se publica.</p>
             <div class="hero-tags">
               <span>18 agentes ADK reales</span>
-              <span>4 escuadrones paralelos</span>
+              <span>Cápsulas de trabajo</span>
+              <span>Candidatos comparables</span>
               <span>Crossref en vivo</span>
-              <span>Herramientas deterministas</span>
-              <span>Sin chain-of-thought público</span>
+              <span>Markdown legible</span>
             </div>
             <div class="research-note">
-              La investigación externa gratuita usa metadatos científicos de Crossref. En la traza verás la llamada, la consulta, títulos, autores, años, DOI y URLs. No es navegación web general ni validación automática de una invención.
+              VIGÍA consulta metadatos científicos públicos. ATLAS convierte la evidencia en rutas técnicas visibles; SPARK verifica lo que las herramientas actuales permiten; KIRA ocupa la tarjeta final únicamente al terminar.
             </div>
           </section>
         </div>
+
         <section id="finalOutput" class="final-card">
           <span>Decisión final verificable</span>
           <h2>KIRA Ω</h2>
@@ -88,7 +90,7 @@
 
       <div class="composer-wrap">
         <form id="missionForm" class="composer">
-          <textarea id="goal" maxlength="4000" aria-label="Misión" placeholder="Asigna una misión medible a KIRA y la Constelación…">Investiga y evalúa una solución asequible, fabricable localmente y sin electricidad para conservar alimentos mediante enfriamiento pasivo. Busca evidencia científica actual, muestra DOI y URLs, separa metadatos de validación, ejecuta las herramientas disponibles y no declares éxito sin pruebas.</textarea>
+          <textarea id="goal" maxlength="4000" aria-label="Misión" placeholder="Asigna una misión medible a KIRA y la Constelación…">Investiga y evalúa una solución asequible, fabricable localmente y sin electricidad para conservar alimentos mediante enfriamiento pasivo. Busca evidencia científica actual, muestra DOI y URLs, genera varios candidatos comparables, ejecuta las herramientas disponibles y no declares éxito sin pruebas.</textarea>
           <div class="composer-bottom">
             <span id="traceStatus" class="composer-note">La actividad mostrada proviene del Runner y de herramientas reales.</span>
             <button id="runButton" class="send" type="submit" aria-label="Ejecutar misión" disabled>↑</button>
@@ -106,8 +108,17 @@
           <div class="proof"><span>Eventos</span><strong id="eventMetric">0</strong></div>
           <div class="proof"><span>Herramientas</span><strong id="toolMetric">0</strong></div>
           <div class="proof"><span>Errores</span><strong id="errorMetric">0</strong></div>
-          <div class="proof"><span>Final</span><strong id="finalMetric">No</strong></div>
+          <div class="proof"><span>Final KIRA</span><strong id="finalMetric">No</strong></div>
         </div>
+      </section>
+
+      <section class="inspector-card">
+        <h3>Qué se muestra</h3>
+        <div class="fact-row"><span>Actividad</span><strong>Cápsulas públicas</strong></div>
+        <div class="fact-row"><span>Contenido</span><strong>Markdown renderizado</strong></div>
+        <div class="fact-row"><span>Candidatos</span><strong>Tarjetas automáticas</strong></div>
+        <div class="fact-row"><span>Razonamiento privado</span><strong>Protegido</strong></div>
+        <p class="truth-copy">Las cápsulas explican acciones y evidencia observables. No intentan revelar el chain-of-thought interno del modelo.</p>
       </section>
 
       <section class="inspector-card">

@@ -53,24 +53,45 @@ const displayNames = {
 };
 
 const roleNames = {
-  orion: "Contrato de misión",
-  vigia: "Evidencia y procedencia",
-  nyx_7: "Riesgos y contradicciones",
-  vega: "Pruebas y umbrales",
-  atlas_9: "Diseño de candidatos",
-  forja_core: "Arquitectura y contratos",
-  forja_test: "Pruebas y regresiones",
-  forja_ux: "Experiencia y demostración",
-  spark: "Herramientas deterministas",
-  recursor_omega: "Auditoría evolutiva",
-  nemesis_omega: "Falsificación implacable",
-  helix_8: "Puntuación basada en evidencia",
-  aureus_7: "Sostenibilidad y capital",
-  bastion: "Seguridad y aprobaciones",
-  echo: "Trazabilidad",
-  rift: "Desbloqueos legítimos",
-  vanta_0: "Rutas no convencionales",
-  kira: "Decisión final",
+  orion: "Define objetivo, restricciones y victoria",
+  vigia: "Busca evidencia y verifica procedencia",
+  nyx_7: "Ataca riesgos, contradicciones y falsas certezas",
+  vega: "Diseña pruebas, métricas y umbrales",
+  atlas_9: "Construye y compara candidatos técnicos",
+  forja_core: "Endurece arquitectura y contratos",
+  forja_test: "Diseña regresiones y fallos inyectados",
+  forja_ux: "Convierte la ejecución en una prueba entendible",
+  spark: "Ejecuta herramientas y verificadores",
+  recursor_omega: "Detecta deuda, reincidencias y cierres falsos",
+  nemesis_omega: "Intenta falsificar la ruta preferida",
+  helix_8: "Puntúa únicamente evidencia demostrada",
+  aureus_7: "Evalúa beneficio, capital y sostenibilidad",
+  bastion: "Aplica seguridad y aprobaciones humanas",
+  echo: "Conserva trazabilidad y límites",
+  rift: "Busca rutas legítimas ante bloqueos",
+  vanta_0: "Explora alternativas no convencionales",
+  kira: "Integra evidencia y toma la decisión final",
+};
+
+const activityNames = {
+  orion: "Construyendo el contrato de misión",
+  vigia: "Investigando fuentes y procedencia",
+  nyx_7: "Auditando riesgos y contradicciones",
+  vega: "Definiendo pruebas y criterios de rechazo",
+  atlas_9: "Generando y comparando candidatos",
+  forja_core: "Endureciendo la solución",
+  forja_test: "Diseñando pruebas de cierre",
+  forja_ux: "Preparando una entrega comprensible",
+  spark: "Ejecutando herramientas verificables",
+  recursor_omega: "Buscando defectos y deuda técnica",
+  nemesis_omega: "Intentando destruir el falso éxito",
+  helix_8: "Calculando la puntuación demostrable",
+  aureus_7: "Evaluando beneficio y sostenibilidad",
+  bastion: "Aplicando límites y aprobaciones",
+  echo: "Construyendo el registro auditable",
+  rift: "Abriendo una ruta alternativa",
+  vanta_0: "Explorando una opción no convencional",
+  kira: "Integrando la decisión final",
 };
 
 let readiness = null;
@@ -82,6 +103,9 @@ let errorCount = 0;
 let finalObserved = false;
 let outputKeyOwners = new Map();
 let knownAgents = new Set();
+let agentCapsules = new Map();
+let candidateSignatures = new Set();
+let researchSignatures = new Set();
 
 function text(value) {
   return value === null || value === undefined ? "" : String(value);
@@ -160,8 +184,7 @@ function renderAgents(payload) {
     const copy = createElement("div", "agent-copy");
     copy.append(createElement("strong", "", displayNames[agent.name] || agent.name));
     copy.append(createElement("span", "", roleNames[agent.name] || agent.stage || "Especialista"));
-    row.append(copy);
-    row.append(createElement("i", "agent-dot"));
+    row.append(copy, createElement("i", "agent-dot"));
     refs.agentList.append(row);
   }
 }
@@ -178,10 +201,20 @@ function findAgentName(author) {
 function setAgentStatus(name, status) {
   if (!name) return;
   const row = refs.agentList.querySelector(`[data-agent="${name}"]`);
-  if (!row) return;
-  row.classList.remove("running", "done", "error", "active");
-  if (status) row.classList.add(status);
-  if (status === "running") row.classList.add("active");
+  if (row) {
+    row.classList.remove("running", "done", "error", "active");
+    if (status) row.classList.add(status);
+    if (status === "running") row.classList.add("active");
+  }
+
+  const capsule = agentCapsules.get(name);
+  if (capsule) {
+    capsule.article.dataset.status = status || "idle";
+    capsule.status.textContent =
+      status === "done" ? "Entrega completada" :
+      status === "error" ? "Fallo detectado" :
+      status === "running" ? "Trabajando ahora" : "En espera";
+  }
 }
 
 function resetAgentStatuses() {
@@ -207,23 +240,24 @@ function updateMetrics() {
 
 function heroNode() {
   const hero = createElement("section", "hero");
-  const mark = createElement("div", "hero-mark", "Ω");
-  const title = createElement("h1", "", "¿Qué misión debe resolver la Constelación?");
-  const copy = createElement(
+  hero.append(createElement("div", "hero-mark", "Ω"));
+  hero.append(createElement("h1", "", "¿Qué misión debe resolver la Constelación?"));
+  hero.append(createElement(
     "p",
     "",
-    "ORION define la victoria; evidencia y FORJA trabajan en paralelo; SPARK ejecuta; RECURSOR y NÉMESIS intentan destruir los falsos éxitos; HELIX puntúa la prueba; KIRA decide.",
-  );
+    "La interfaz resume trabajo público verificable. El razonamiento privado permanece protegido; aquí verás acciones, herramientas, evidencia, candidatos, rechazos y decisiones.",
+  ));
   const tags = createElement("div", "hero-tags");
   for (const label of [
-    "18 agentes reales",
-    "4 escuadrones paralelos",
-    "Herramientas deterministas",
-    "Sin chain-of-thought público",
+    "18 agentes ADK reales",
+    "Cápsulas de trabajo",
+    "Candidatos comparables",
+    "Crossref en vivo",
+    "Markdown legible",
   ]) {
     tags.append(createElement("span", "", label));
   }
-  hero.append(mark, title, copy, tags);
+  hero.append(tags);
   return hero;
 }
 
@@ -232,9 +266,12 @@ function clearTrace({ keepSession = true } = {}) {
   toolCount = 0;
   errorCount = 0;
   finalObserved = false;
+  agentCapsules = new Map();
+  candidateSignatures = new Set();
+  researchSignatures = new Set();
   updateMetrics();
   resetAgentStatuses();
-  refs.finalText.textContent = "";
+  refs.finalText.replaceChildren();
   refs.finalOutput.classList.remove("visible");
   refs.timeline.replaceChildren(heroNode());
   refs.traceStatus.textContent = readiness?.ready
@@ -250,50 +287,600 @@ function appendUserMessage(goal) {
   const article = createElement("article", "message user");
   const body = createElement("div", "message-body");
   const head = createElement("div", "message-head");
-  head.append(createElement("strong", "", "Tú"));
-  head.append(createElement("span", "", shortTime()));
+  head.append(createElement("strong", "", "Tú"), createElement("span", "", shortTime()));
   body.append(head, createElement("p", "message-copy", goal));
   article.append(body, createElement("div", "message-avatar", "AG"));
   refs.timeline.append(article);
 }
 
-function kindLabel(kind) {
-  const labels = {
-    session: "Sesión",
-    model: "Modelo",
-    tool_call: "Herramienta",
-    tool_result: "Resultado",
-    state: "Estado",
-    final: "Respuesta final",
-    complete: "Completado",
-    error: "Error",
-    event: "Evento",
-  };
-  return labels[kind] || kind.replaceAll("_", " ");
+function appendSystemNotice(message, tone = "neutral") {
+  const notice = createElement("section", `system-notice ${tone}`);
+  notice.append(createElement("span", "system-notice-icon", tone === "error" ? "!" : "Ω"));
+  notice.append(createElement("p", "", message));
+  refs.timeline.append(notice);
 }
 
-function kindGlyph(kind) {
-  const glyphs = {
-    session: "Ω",
-    model: "✦",
-    tool_call: "→",
-    tool_result: "✓",
-    state: "Δ",
-    final: "K",
-    complete: "✓",
-    error: "!",
-  };
-  return glyphs[kind] || "·";
+function safeHref(value) {
+  try {
+    const url = new URL(value, window.location.origin);
+    if (!["http:", "https:", "mailto:"].includes(url.protocol)) return "#";
+    return url.href;
+  } catch {
+    return "#";
+  }
 }
 
-function addStructuredBlock(parent, title, value) {
+function inlineMarkdown(raw) {
+  const tokens = [];
+  let source = text(raw).replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, label, href) => {
+    const token = `\u0000LINK${tokens.length}\u0000`;
+    tokens.push(`<a href="${escapeHtml(safeHref(href))}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`);
+    return token;
+  });
+  source = escapeHtml(source);
+  source = source
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/__([^_]+)__/g, "<strong>$1</strong>")
+    .replace(/(^|[\s(])\*([^*\n]+)\*/g, "$1<em>$2</em>")
+    .replace(/(^|[\s(])_([^_\n]+)_/g, "$1<em>$2</em>");
+  tokens.forEach((html, index) => {
+    source = source.replace(`\u0000LINK${index}\u0000`, html);
+  });
+  return source;
+}
+
+function escapeHtml(value) {
+  return text(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function isTableSeparator(line) {
+  return /^\s*\|?[\s:|-]+\|[\s:|-|]*\s*$/.test(line);
+}
+
+function splitTableRow(line) {
+  return line.trim().replace(/^\||\|$/g, "").split("|").map((cell) => cell.trim());
+}
+
+function renderMarkdown(source) {
+  const root = createElement("div", "markdown-body");
+  const lines = text(source).replace(/\r\n?/g, "\n").split("\n");
+  let index = 0;
+
+  const appendParagraph = (parts) => {
+    const p = createElement("p");
+    p.innerHTML = inlineMarkdown(parts.join(" ").trim());
+    root.append(p);
+  };
+
+  while (index < lines.length) {
+    const line = lines[index];
+    if (!line.trim()) {
+      index += 1;
+      continue;
+    }
+
+    if (/^```/.test(line.trim())) {
+      const language = line.trim().slice(3).trim();
+      const code = [];
+      index += 1;
+      while (index < lines.length && !/^```/.test(lines[index].trim())) {
+        code.push(lines[index]);
+        index += 1;
+      }
+      index += 1;
+      const pre = createElement("pre", "code-block");
+      if (language) pre.dataset.language = language;
+      pre.append(createElement("code", "", code.join("\n")));
+      root.append(pre);
+      continue;
+    }
+
+    const heading = line.match(/^(#{1,4})\s+(.+)$/);
+    if (heading) {
+      const node = createElement(`h${Math.min(heading[1].length + 1, 5)}`);
+      node.innerHTML = inlineMarkdown(heading[2]);
+      root.append(node);
+      index += 1;
+      continue;
+    }
+
+    if (/^\s*---+\s*$/.test(line)) {
+      root.append(document.createElement("hr"));
+      index += 1;
+      continue;
+    }
+
+    if (line.includes("|") && index + 1 < lines.length && isTableSeparator(lines[index + 1])) {
+      const table = createElement("div", "table-scroll");
+      const tableNode = document.createElement("table");
+      const headers = splitTableRow(line);
+      const thead = document.createElement("thead");
+      const headerRow = document.createElement("tr");
+      headers.forEach((cell) => {
+        const th = document.createElement("th");
+        th.innerHTML = inlineMarkdown(cell);
+        headerRow.append(th);
+      });
+      thead.append(headerRow);
+      tableNode.append(thead);
+      index += 2;
+      const tbody = document.createElement("tbody");
+      while (index < lines.length && lines[index].includes("|") && lines[index].trim()) {
+        const tr = document.createElement("tr");
+        splitTableRow(lines[index]).forEach((cell) => {
+          const td = document.createElement("td");
+          td.innerHTML = inlineMarkdown(cell);
+          tr.append(td);
+        });
+        tbody.append(tr);
+        index += 1;
+      }
+      tableNode.append(tbody);
+      table.append(tableNode);
+      root.append(table);
+      continue;
+    }
+
+    if (/^\s*>\s?/.test(line)) {
+      const quote = [];
+      while (index < lines.length && /^\s*>\s?/.test(lines[index])) {
+        quote.push(lines[index].replace(/^\s*>\s?/, ""));
+        index += 1;
+      }
+      const blockquote = document.createElement("blockquote");
+      blockquote.innerHTML = inlineMarkdown(quote.join(" "));
+      root.append(blockquote);
+      continue;
+    }
+
+    if (/^\s*[-*+]\s+/.test(line) || /^\s*\d+\.\s+/.test(line)) {
+      const ordered = /^\s*\d+\.\s+/.test(line);
+      const list = document.createElement(ordered ? "ol" : "ul");
+      const pattern = ordered ? /^\s*\d+\.\s+/ : /^\s*[-*+]\s+/;
+      while (index < lines.length && pattern.test(lines[index])) {
+        const li = document.createElement("li");
+        li.innerHTML = inlineMarkdown(lines[index].replace(pattern, ""));
+        list.append(li);
+        index += 1;
+      }
+      root.append(list);
+      continue;
+    }
+
+    const paragraph = [line];
+    index += 1;
+    while (
+      index < lines.length &&
+      lines[index].trim() &&
+      !/^(#{1,4})\s+/.test(lines[index]) &&
+      !/^```/.test(lines[index].trim()) &&
+      !/^\s*[-*+]\s+/.test(lines[index]) &&
+      !/^\s*\d+\.\s+/.test(lines[index]) &&
+      !/^\s*>\s?/.test(lines[index]) &&
+      !(lines[index].includes("|") && index + 1 < lines.length && isTableSeparator(lines[index + 1]))
+    ) {
+      paragraph.push(lines[index]);
+      index += 1;
+    }
+    appendParagraph(paragraph);
+  }
+
+  return root;
+}
+
+function stripMarkdown(value) {
+  return text(value)
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/[#*_`>|]/g, " ")
+    .replace(/\$\\?([^$]+)\$/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function truncate(value, limit = 260) {
+  const cleaned = stripMarkdown(value);
+  return cleaned.length > limit ? `${cleaned.slice(0, limit - 1)}…` : cleaned;
+}
+
+function capsuleFor(agentName, timestamp) {
+  if (agentCapsules.has(agentName)) return agentCapsules.get(agentName);
+
+  const article = createElement("article", "agent-capsule");
+  article.dataset.agent = agentName;
+  article.dataset.status = "running";
+
+  const header = createElement("header", "capsule-header");
+  header.append(createElement("div", "capsule-avatar", initials(agentName)));
+  const identity = createElement("div", "capsule-identity");
+  identity.append(createElement("strong", "", displayNames[agentName] || agentName));
+  identity.append(createElement("span", "", roleNames[agentName] || "Agente especialista"));
+  const status = createElement("span", "capsule-status", "Trabajando ahora");
+  header.append(identity, status);
+
+  const activity = createElement("div", "capsule-activity");
+  activity.append(createElement("i", "activity-pulse"));
+  activity.append(createElement("span", "", activityNames[agentName] || "Procesando una entrega verificable"));
+
+  const badges = createElement("div", "capsule-badges");
+  badges.append(createElement("span", "capsule-badge public", "Actividad pública"));
+  badges.append(createElement("span", "capsule-badge protected", "Razonamiento privado protegido"));
+
+  const preview = createElement("p", "capsule-preview", "Esperando la primera salida pública…");
+  const tools = createElement("div", "capsule-tools");
+
+  const details = document.createElement("details");
+  details.className = "capsule-details";
+  details.hidden = true;
+  const summary = document.createElement("summary");
+  summary.textContent = "Ver entrega completa";
+  const rendered = createElement("div", "capsule-rendered");
+  details.append(summary, rendered);
+
+  const footer = createElement("footer", "capsule-footer");
+  footer.append(createElement("span", "", `Iniciado ${shortTime(timestamp)}`));
+  const evidence = createElement("span", "", "0 evidencias · 0 herramientas");
+  footer.append(evidence);
+
+  article.append(header, activity, badges, preview, tools, details, footer);
+  refs.timeline.append(article);
+
+  const capsule = {
+    article,
+    status,
+    activity: activity.querySelector("span"),
+    preview,
+    tools,
+    details,
+    rendered,
+    evidence,
+    text: "",
+    evidenceCount: 0,
+    toolCount: 0,
+  };
+  agentCapsules.set(agentName, capsule);
+  return capsule;
+}
+
+function updateCapsuleMetrics(capsule) {
+  capsule.evidence.textContent = `${capsule.evidenceCount} evidencias · ${capsule.toolCount} herramientas`;
+}
+
+function addToolChip(capsule, label, tone = "running") {
+  const chip = createElement("span", `tool-chip ${tone}`, label);
+  capsule.tools.append(chip);
+}
+
+function unwrapPayload(value) {
+  let payload = value;
+  for (let index = 0; index < 3; index += 1) {
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) break;
+    if (payload.result && typeof payload.result === "object") payload = payload.result;
+    else if (payload.output && typeof payload.output === "object") payload = payload.output;
+    else if (payload.value && typeof payload.value === "object") payload = payload.value;
+    else break;
+  }
+  return payload;
+}
+
+function findResearchPayload(value) {
+  const payload = unwrapPayload(value);
+  if (!payload || typeof payload !== "object") return null;
+  if (Array.isArray(payload.results) && payload.provider) return payload;
+  if (payload.live_research && typeof payload.live_research === "object") return payload.live_research;
+  return null;
+}
+
+function renderResearchBoard(payload, agentName = "vigia") {
+  if (!payload || !Array.isArray(payload.results)) return false;
+  const signature = `${payload.provider || "research"}:${payload.query || ""}:${payload.retrieved_at || ""}`;
+  if (researchSignatures.has(signature)) return true;
+  researchSignatures.add(signature);
+
+  const board = createElement("section", "research-board");
+  const head = createElement("div", "board-heading");
+  const copy = createElement("div");
+  copy.append(createElement("span", "eyebrow", "BÚSQUEDA EXTERNA COMPLETADA"));
+  copy.append(createElement("h2", "", `${payload.result_count ?? payload.results.length} fuentes encontradas`));
+  copy.append(createElement("p", "", `Consulta: ${payload.query || "sin consulta registrada"} · ${payload.provider || "fuente pública"}`));
+  head.append(copy, createElement("span", `board-status ${payload.status === "ok" ? "ok" : "warning"}`, payload.status === "ok" ? "Evidencia recuperada" : "No disponible"));
+  board.append(head);
+
+  if (!payload.results.length) {
+    board.append(createElement("p", "empty-board", payload.message || payload.reason || "La búsqueda no devolvió registros."));
+  } else {
+    const grid = createElement("div", "research-grid");
+    payload.results.slice(0, 8).forEach((item, index) => {
+      const card = createElement("article", "research-card");
+      const top = createElement("div", "research-card-top");
+      top.append(createElement("span", "research-index", String(index + 1).padStart(2, "0")));
+      top.append(createElement("span", "research-type", item.type || "registro"));
+      card.append(top);
+      card.append(createElement("h3", "", item.title || "Fuente sin título"));
+      const meta = [
+        item.year || "año no informado",
+        item.venue || "publicación no informada",
+        Array.isArray(item.authors) && item.authors.length ? item.authors.slice(0, 3).join(", ") : "autoría no informada",
+      ];
+      card.append(createElement("p", "research-meta", meta.join(" · ")));
+      const facts = createElement("div", "research-facts");
+      if (item.citation_count !== null && item.citation_count !== undefined) {
+        facts.append(createElement("span", "", `${item.citation_count} citas`));
+      }
+      if (item.doi) facts.append(createElement("span", "", `DOI ${item.doi}`));
+      card.append(facts);
+      if (item.url) {
+        const link = createElement("a", "research-link", "Abrir fuente ↗");
+        link.href = safeHref(item.url);
+        link.target = "_blank";
+        link.rel = "noreferrer";
+        card.append(link);
+      }
+      grid.append(card);
+    });
+    board.append(grid);
+  }
+
+  board.append(createElement(
+    "p",
+    "board-boundary",
+    payload.truth_boundary || "Estos registros ayudan a descubrir evidencia; no validan por sí solos la aplicación propuesta.",
+  ));
+  refs.timeline.append(board);
+  const capsule = agentCapsules.get(agentName);
+  if (capsule) {
+    capsule.evidenceCount += payload.results.length;
+    updateCapsuleMetrics(capsule);
+  }
+  return true;
+}
+
+function extractField(section, labels) {
+  for (const label of labels) {
+    const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(
+      `\\*\\*${escaped}:?\\*\\*\\s*([\\s\\S]*?)(?=\\n\\s*\\*\\s+\\*\\*|\\n---|\\n###\\s+CANDIDATO|\\n##\\s+)`,
+      "i",
+    );
+    const match = section.match(pattern);
+    if (match) return truncate(match[1], 420);
+  }
+  return "";
+}
+
+function extractCandidateCards(markdown) {
+  const source = text(markdown);
+  const headingPattern = /^###\s+CANDIDATO\s+(\d+)\s*:\s*(.+)$/gim;
+  const matches = [...source.matchAll(headingPattern)];
+  const candidates = [];
+
+  matches.forEach((match, index) => {
+    const start = match.index ?? 0;
+    const end = index + 1 < matches.length ? matches[index + 1].index : source.length;
+    const section = source.slice(start, end);
+    const name = stripMarkdown(match[2]);
+    const subtitleMatch = section.slice(match[0].length).match(/^\s*\*([^*\n]+)\*/m);
+    const costMatch = section.match(/Costo Total BOM[^$\d]*(?:\\?\$)?\s*([0-9]+(?:\.[0-9]+)?)/i);
+    candidates.push({
+      rank: Number(match[1]),
+      name,
+      subtitle: subtitleMatch ? stripMarkdown(subtitleMatch[1]) : "",
+      mechanism: extractField(section, ["Mecanismo Físico", "Mecanismo", "Physical Mechanism"]),
+      benefit: extractField(section, ["Beneficio Esperado", "Expected Benefit"]),
+      dependencies: extractField(section, ["Dependencias", "Dependencies"]),
+      test: extractField(section, ["Método de Prueba", "Test Method"]),
+      rejection: extractField(section, ["Regla de Rechazo", "Rejection Rule"]),
+      localBuild: extractField(section, ["Ruta de Fabricación Local", "Local Manufacturing Route"]),
+      bomUsd: costMatch ? Number(costMatch[1]) : null,
+      status: "Candidato provisional",
+    });
+  });
+  return candidates;
+}
+
+function renderCandidateBoard(candidates, sourceLabel = "ATLAS-9") {
+  if (!Array.isArray(candidates) || !candidates.length) return false;
+  const signature = candidates.map((item) => `${item.rank}:${item.name}`).join("|");
+  if (candidateSignatures.has(signature)) return true;
+  candidateSignatures.add(signature);
+
+  const board = createElement("section", "candidate-board");
+  const head = createElement("div", "board-heading");
+  const copy = createElement("div");
+  copy.append(createElement("span", "eyebrow", "CANDIDATOS GENERADOS AUTÓNOMAMENTE"));
+  copy.append(createElement("h2", "", `${candidates.length} rutas técnicas para comparar`));
+  copy.append(createElement("p", "", `${sourceLabel} las produjo a partir de la misión, el catálogo y la evidencia recuperada.`));
+  head.append(copy, createElement("span", "board-status warning", "Ranking provisional"));
+  board.append(head);
+
+  const grid = createElement("div", "candidate-grid");
+  candidates.forEach((candidate) => {
+    const card = createElement("article", "candidate-card");
+    const top = createElement("div", "candidate-top");
+    top.append(createElement("span", "candidate-rank", `Ruta ${candidate.rank}`));
+    top.append(createElement("span", "candidate-state", candidate.status || "Provisional"));
+    card.append(top);
+    card.append(createElement("h3", "", candidate.name));
+    if (candidate.subtitle) card.append(createElement("p", "candidate-subtitle", candidate.subtitle));
+
+    const metrics = createElement("div", "candidate-metrics");
+    metrics.append(createElement("div", "", "Costo BOM"));
+    metrics.lastChild.append(createElement("strong", "", candidate.bomUsd !== null ? `US$${candidate.bomUsd}` : "Pendiente"));
+    metrics.append(createElement("div", "", "Validación"));
+    metrics.lastChild.append(createElement("strong", "", "Aplicación pendiente"));
+    card.append(metrics);
+
+    const facts = createElement("dl", "candidate-facts");
+    const addFact = (label, value) => {
+      if (!value) return;
+      facts.append(createElement("dt", "", label), createElement("dd", "", value));
+    };
+    addFact("Mecanismo", candidate.mechanism);
+    addFact("Beneficio esperado", candidate.benefit);
+    addFact("Dependencias", candidate.dependencies);
+    addFact("Prueba", candidate.test);
+    addFact("Regla de rechazo", candidate.rejection);
+    addFact("Fabricación local", candidate.localBuild);
+    card.append(facts);
+    grid.append(card);
+  });
+
+  board.append(grid);
+  board.append(createElement(
+    "p",
+    "board-boundary",
+    "Estas rutas son propuestas de diseño. Ninguna se presenta como ganadora hasta que SPARK ejecute verificadores y KIRA resuelva evidencia, riesgos y rechazo.",
+  ));
+  refs.timeline.append(board);
+
+  const atlas = agentCapsules.get("atlas_9");
+  if (atlas) {
+    atlas.preview.textContent = `Generó ${candidates.length} candidatos comparables y los dejó listos para verificación.`;
+    atlas.evidenceCount += candidates.length;
+    updateCapsuleMetrics(atlas);
+  }
+  return true;
+}
+
+function addRawDetails(parent, title, value) {
   if (value === null || value === undefined) return;
   if (Array.isArray(value) && value.length === 0) return;
   if (!Array.isArray(value) && typeof value === "object" && Object.keys(value).length === 0) return;
-  const block = createElement("div", "structured");
-  block.append(createElement("strong", "", title));
-  block.append(createElement("pre", "", pretty(value)));
-  parent.append(block);
+  const details = document.createElement("details");
+  details.className = "raw-details";
+  const summary = document.createElement("summary");
+  summary.textContent = title;
+  details.append(summary, createElement("pre", "", pretty(value)));
+  parent.append(details);
+}
+
+function renderToolResult(capsule, result) {
+  const payload = unwrapPayload(result.response || {});
+  const research = findResearchPayload(payload);
+  if (research) renderResearchBoard(research, "vigia");
+
+  if (result.name === "runtime_readiness") {
+    const facts = createElement("div", "tool-facts");
+    facts.append(createElement("span", "", `Backend: ${payload.llm_backend || "—"}`));
+    facts.append(createElement("span", "", `Modelo: ${payload.model || "—"}`));
+    facts.append(createElement("span", "", payload.ready ? "Runner preparado" : "Runner no preparado"));
+    capsule.tools.append(facts);
+  }
+
+  addRawDetails(capsule.tools, `Datos completos · ${result.name || "herramienta"}`, payload);
+}
+
+function renderStateDelta(record, capsule) {
+  const delta = record.state_delta;
+  if (!delta || typeof delta !== "object" || Array.isArray(delta)) return;
+  const keys = Object.keys(delta);
+  if (!keys.length) return;
+
+  const memory = createElement("div", "memory-update");
+  memory.append(createElement("span", "memory-icon", "Δ"));
+  memory.append(createElement("span", "", `Memoria compartida actualizada: ${keys.join(", ")}`));
+  capsule.tools.append(memory);
+
+  if (typeof delta.candidate_architecture === "string") {
+    renderCandidateBoard(extractCandidateCards(delta.candidate_architecture), "ATLAS-9");
+  }
+
+  const ownerText = keys
+    .map((key) => delta[key])
+    .find((value) => typeof value === "string" && value.trim());
+  if (ownerText && !capsule.text) {
+    capsule.text = ownerText;
+    capsule.preview.textContent = truncate(ownerText);
+    capsule.rendered.replaceChildren(renderMarkdown(ownerText));
+    capsule.details.hidden = false;
+    capsule.details.open = false;
+  }
+
+  addRawDetails(capsule.tools, "Estado técnico completo", delta);
+}
+
+function publicActivity(record, agentName) {
+  const calls = record.tool_calls || [];
+  const results = record.tool_results || [];
+  if (calls.length) return `Ejecutando ${calls.map((item) => item.name || "herramienta").join(", ")}`;
+  if (results.length) return `Procesando resultados de ${results.map((item) => item.name || "herramienta").join(", ")}`;
+  if (record.kind === "error") return "La ejecución produjo un fallo auditable";
+  if (record.state_delta && Object.keys(record.state_delta).length) return "Guardando la entrega en memoria compartida";
+  return activityNames[agentName] || "Produciendo una salida verificable";
+}
+
+function appendAgentEvent(record, agentName) {
+  const capsule = capsuleFor(agentName, record.timestamp);
+  setAgentStatus(agentName, record.kind === "error" ? "error" : "running");
+  capsule.activity.textContent = publicActivity(record, agentName);
+
+  const calls = record.tool_calls || [];
+  calls.forEach((call) => {
+    capsule.toolCount += 1;
+    addToolChip(capsule, `Ejecutando · ${call.name || "herramienta"}`, "running");
+    addRawDetails(capsule.tools, `Parámetros · ${call.name || "herramienta"}`, call.args || {});
+  });
+
+  const results = record.tool_results || [];
+  results.forEach((result) => {
+    capsule.evidenceCount += 1;
+    addToolChip(capsule, `Completado · ${result.name || "herramienta"}`, "done");
+    renderToolResult(capsule, result);
+  });
+
+  const visibleTexts = [];
+  if (record.message) visibleTexts.push(record.message);
+  for (const item of record.texts || []) {
+    if (item && !visibleTexts.includes(item)) visibleTexts.push(item);
+  }
+  if (visibleTexts.length) {
+    const combined = visibleTexts.join("\n\n");
+    capsule.text = combined;
+    capsule.preview.textContent = truncate(combined);
+    capsule.rendered.replaceChildren(renderMarkdown(combined));
+    capsule.details.hidden = false;
+
+    if (agentName === "atlas_9") {
+      renderCandidateBoard(extractCandidateCards(combined), "ATLAS-9");
+    }
+  }
+
+  if (record.thought_parts_count) {
+    let badge = capsule.article.querySelector(".capsule-badge.thought-count");
+    if (!badge) {
+      badge = createElement("span", "capsule-badge thought-count");
+      capsule.article.querySelector(".capsule-badges").append(badge);
+    }
+    badge.textContent = `${record.thought_parts_count} segmentos internos protegidos`;
+  }
+
+  renderStateDelta(record, capsule);
+  updateCapsuleMetrics(capsule);
+
+  if (record.error_message || record.error_code) {
+    const failure = createElement("div", "capsule-error");
+    failure.append(createElement("strong", "", record.error_code || "Fallo de ejecución"));
+    failure.append(createElement("p", "", record.error_message || "Error sin detalle público."));
+    capsule.tools.append(failure);
+  }
+
+  if (record.is_final || (record.state_delta && Object.keys(record.state_delta).some((key) => outputKeyOwners.get(key) === agentName))) {
+    setAgentStatus(agentName, record.kind === "error" ? "error" : "done");
+  }
+
+  const isKiraTerminal = agentName === "kira" && visibleTexts.length > 0 && record.is_final;
+  if (isKiraTerminal) {
+    finalObserved = true;
+    refs.finalText.replaceChildren(renderMarkdown(visibleTexts.join("\n\n")));
+    refs.finalOutput.classList.add("visible");
+    setAgentStatus("kira", "done");
+  }
 }
 
 function appendEvent(record) {
@@ -301,80 +888,41 @@ function appendEvent(record) {
   const calls = record.tool_calls || [];
   toolCount += calls.length;
   if (record.kind === "error" || record.error_message || record.error_code) errorCount += 1;
-  if (record.is_final || record.kind === "final") finalObserved = true;
   updateMetrics();
 
   const authorName = findAgentName(record.author);
-  if (authorName) setAgentStatus(authorName, record.kind === "error" ? "error" : "running");
   completeAgentsFromState(record.state_delta);
-
-  const article = createElement("article", "message assistant");
-  article.append(createElement("div", "message-avatar", initials(authorName || "orpheus")));
-
-  const body = createElement("div", "message-body");
-  const head = createElement("div", "message-head");
-  head.append(createElement("strong", "", displayNames[authorName] || record.author || "ORPHEUS Ω"));
-  head.append(createElement("span", "", shortTime(record.timestamp)));
-  body.append(head);
-
-  const visibleTexts = [];
-  if (record.message) visibleTexts.push(record.message);
-  for (const item of record.texts || []) visibleTexts.push(item);
-  if (visibleTexts.length) body.append(createElement("p", "message-copy", visibleTexts.join("\n\n")));
-
-  const kind = record.kind || "event";
-  const card = createElement("section", `event-card ${kind}`);
-  const summary = createElement("div", "event-summary");
-  const kindElement = createElement("span", "event-kind");
-  kindElement.append(createElement("i", "", kindGlyph(kind)));
-  kindElement.append(document.createTextNode(kindLabel(kind)));
-  summary.append(kindElement);
-  summary.append(createElement("span", "event-seq", `#${record.sequence ?? eventCount}`));
-  card.append(summary);
-
-  const content = createElement("div", "event-content");
-  for (const call of calls) {
-    addStructuredBlock(content, `Llamada · ${call.name || "herramienta"}`, call.args || {});
-  }
-  for (const result of record.tool_results || []) {
-    addStructuredBlock(content, `Resultado · ${result.name || "herramienta"}`, result.response || {});
-  }
-  addStructuredBlock(content, "Cambio de estado", record.state_delta);
-  addStructuredBlock(content, "Artefactos", record.artifact_delta);
-  addStructuredBlock(content, "Adjuntos seguros", record.attachments);
-  if (record.error_message || record.error_code) {
-    addStructuredBlock(content, "Fallo auditable", {
-      code: record.error_code || null,
-      message: record.error_message || "Error de ejecución",
-    });
-  }
-  if (!content.childElementCount) {
-    content.append(createElement("div", "structured", "Evento registrado sin carga pública adicional."));
-  }
-  card.append(content);
-  body.append(card);
-  article.append(body);
-  refs.timeline.append(article);
 
   if (record.session_id) {
     refs.sessionStatus.textContent = record.session_id;
     refs.sessionId.value = record.session_id;
   }
-  if (record.is_final && (record.texts || []).length) {
-    refs.finalText.textContent = record.texts.join("\n");
-    refs.finalOutput.classList.add("visible");
-    if (authorName) setAgentStatus(authorName, "done");
-  }
-  if (kind === "complete") {
+
+  if (authorName) {
+    appendAgentEvent(record, authorName);
+  } else if (record.kind === "session") {
+    appendSystemNotice("Google ADK inició una ejecución real y creó una sesión auditable.", "success");
+  } else if (record.kind === "complete") {
     for (const row of refs.agentList.querySelectorAll(".agent-row.running")) {
       row.classList.remove("running", "active");
       row.classList.add("done");
     }
-    refs.traceStatus.textContent = record.final_response_observed
-      ? "Misión completada con respuesta final observada."
-      : "Misión terminada sin una respuesta final identificable.";
+    appendSystemNotice(
+      finalObserved
+        ? "La invocación terminó y KIRA entregó una decisión final."
+        : "La invocación terminó, pero no se recibió una decisión terminal de KIRA.",
+      finalObserved ? "success" : "warning",
+    );
+    refs.traceStatus.textContent = finalObserved
+      ? "Misión completada con decisión final de KIRA."
+      : "Misión terminada sin una decisión final identificable de KIRA.";
+  } else if (record.kind === "error") {
+    appendSystemNotice(record.error_message || record.message || "La ejecución produjo un fallo.", "error");
+  } else if (record.message) {
+    appendSystemNotice(record.message);
   }
 
+  updateMetrics();
   refs.conversationScroll.scrollTo({
     top: refs.conversationScroll.scrollHeight,
     behavior: "smooth",
@@ -509,6 +1057,7 @@ refs.missionForm.addEventListener("submit", async (event) => {
   clearTrace();
   refs.timeline.replaceChildren();
   appendUserMessage(goal);
+  appendSystemNotice("KIRA recibió la misión. ORION prepara el contrato y la Constelación continuará sin detenerse ante ambigüedades que puedan resolverse con rutas condicionales.");
   setRunning(true);
   refs.traceStatus.textContent = "Conectando con Google ADK…";
   setAgentStatus("orion", "running");
@@ -533,7 +1082,7 @@ refs.missionForm.addEventListener("submit", async (event) => {
       throw new Error(message);
     }
 
-    refs.traceStatus.textContent = "Recibiendo eventos reales del Runner…";
+    refs.traceStatus.textContent = "Constelación trabajando: acciones, herramientas y entregas aparecerán en cápsulas.";
     await readNdjson(response);
   } catch (error) {
     appendEvent({
