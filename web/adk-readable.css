@@ -1,0 +1,65 @@
+/* Readability overrides for the live ADK mission interface. */
+
+.app {
+  grid-template-columns: 292px minmax(0, 1fr) 370px;
+}
+
+.brand strong { font-size: 15px; }
+.brand span { font-size: 11px; }
+.nav-link { font-size: 14px; }
+.rail-heading strong,
+.rail-heading span { font-size: 11px; }
+.agent-copy strong { font-size: 12px; }
+.agent-copy span { font-size: 10px; }
+.runner-mini strong { font-size: 12px; }
+.runner-mini span { font-size: 10px; }
+.model-id strong { font-size: 14px; }
+.model-id span { font-size: 11px; }
+.status-pill,
+.top-link { font-size: 12px; }
+.hero p { font-size: 15px; }
+.hero-tags span { font-size: 11px; }
+.message-head strong { font-size: 13px; }
+.message-head span { font-size: 11px; }
+.message-copy { font-size: 15px; line-height: 1.68; }
+.event-kind { font-size: 11px; }
+.event-seq { font-size: 10px; }
+.structured strong { font-size: 11px; }
+.structured pre { font-size: 12px; line-height: 1.58; }
+.final-card span { font-size: 11px; }
+.final-card h2 { font-size: 18px; }
+.final-card div { font-size: 15px; line-height: 1.7; }
+.composer textarea { font-size: 15px; }
+.composer-note { font-size: 11px; }
+.inspector-title strong { font-size: 14px; }
+.inspector-title span { font-size: 10px; }
+.inspector-card h3 { font-size: 13px; }
+.fact-row span,
+.fact-row strong,
+.truth-copy,
+.settings-grid label,
+.error-list { font-size: 12px; }
+.proof span { font-size: 10px; }
+.proof strong { font-size: 18px; }
+
+.research-note {
+  max-width: 720px;
+  margin: 18px auto 0;
+  padding: 12px 14px;
+  border: 1px solid #c9d8e8;
+  border-radius: 14px;
+  background: #f4f8fc;
+  color: #425979;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+@media (max-width: 1240px) {
+  .app { grid-template-columns: 260px minmax(0, 1fr) 330px; }
+}
+
+@media (max-width: 980px) {
+  .app { grid-template-columns: 1fr; }
+  .left-rail,
+  .inspector { display: none; }
+}
