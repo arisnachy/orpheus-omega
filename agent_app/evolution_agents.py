@@ -3,13 +3,35 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-from google.adk.agents import LlmAgent, ParallelAgent
+from google.adk.agents import LlmAgent, ParallelAgent, SequentialAgent
 
 
 ModelFactory = Callable[[], Any]
+SquadAgent = ParallelAgent | SequentialAgent
 
 
-def build_forja_squad(model_factory: ModelFactory, truth_boundary: str) -> ParallelAgent:
+def _squad(
+    *,
+    name: str,
+    description: str,
+    sub_agents: list[LlmAgent],
+    execution_profile: str,
+) -> SquadAgent:
+    """Build a burst-parallel or free-tier-safe squad without removing agents."""
+
+    squad_type = SequentialAgent if execution_profile == "free_safe" else ParallelAgent
+    return squad_type(
+        name=name,
+        description=description,
+        sub_agents=sub_agents,
+    )
+
+
+def build_forja_squad(
+    model_factory: ModelFactory,
+    truth_boundary: str,
+    execution_profile: str = "parallel",
+) -> SquadAgent:
     """Create the programming cell that hardens architecture, tests, and UX before execution."""
 
     forja_core = LlmAgent(
@@ -62,14 +84,23 @@ def build_forja_squad(model_factory: ModelFactory, truth_boundary: str) -> Paral
         output_key="forja_ux_spec",
     )
 
-    return ParallelAgent(
+    mode = "sequentially for local/free-tier stability" if execution_profile == "free_safe" else "concurrently"
+    return _squad(
         name="forja_squad",
-        description="Runs software architecture, test engineering, and proof-oriented UX design concurrently.",
+        description=(
+            "Runs software architecture, test engineering, and proof-oriented UX design "
+            f"{mode}."
+        ),
         sub_agents=[forja_core, forja_test, forja_ux],
+        execution_profile=execution_profile,
     )
 
 
-def build_audit_squad(model_factory: ModelFactory, truth_boundary: str) -> ParallelAgent:
+def build_audit_squad(
+    model_factory: ModelFactory,
+    truth_boundary: str,
+    execution_profile: str = "parallel",
+) -> SquadAgent:
     """Create the post-execution cell that tries to falsify success before scoring."""
 
     recursor = LlmAgent(
@@ -107,10 +138,15 @@ def build_audit_squad(model_factory: ModelFactory, truth_boundary: str) -> Paral
         output_key="adversarial_verdict",
     )
 
-    return ParallelAgent(
+    mode = "sequentially for local/free-tier stability" if execution_profile == "free_safe" else "concurrently"
+    return _squad(
         name="audit_squad",
-        description="Runs evolutionary audit and ruthless lawful falsification concurrently.",
+        description=(
+            "Runs evolutionary audit and ruthless lawful falsification "
+            f"{mode}."
+        ),
         sub_agents=[recursor, nemesis],
+        execution_profile=execution_profile,
     )
 
 
