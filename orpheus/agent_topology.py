@@ -3,6 +3,8 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any
 
+from .settings import Settings
+
 
 AGENT_TOPOLOGY: dict[str, Any] = {
     "version": "0.9.0",
@@ -105,6 +107,7 @@ AGENT_TOPOLOGY: dict[str, Any] = {
     ],
     "specialist_agent_count": 18,
     "parallel_groups": 4,
+    "potential_parallel_groups": 4,
     "state_transport": "ADK session state through unique output_key values",
     "engineering_contract": {
         "forja_core": "typed architecture, state, tool, retry, timeout, and security contracts",
@@ -141,6 +144,23 @@ AGENT_TOPOLOGY: dict[str, Any] = {
 
 
 def get_agent_topology() -> dict[str, Any]:
-    """Return a safe copy of the public ADK orchestration topology."""
+    """Return the actual public orchestration profile without exposing credentials."""
 
-    return deepcopy(AGENT_TOPOLOGY)
+    topology = deepcopy(AGENT_TOPOLOGY)
+    settings = Settings.from_env()
+    free_safe = settings.execution_profile == "free_safe"
+    topology["execution_profile"] = settings.execution_profile
+    topology["execution_profile_description"] = (
+        "All 18 specialists remain enabled; squad members run sequentially to avoid "
+        "local/free-tier burst failures."
+        if free_safe
+        else "Squad members run concurrently for cloud throughput."
+    )
+    topology["parallel_groups"] = 0 if free_safe else topology["potential_parallel_groups"]
+
+    for stage in topology["stages"]:
+        if stage.get("sub_agents"):
+            stage["type"] = "SequentialAgent" if free_safe else "ParallelAgent"
+            stage["execution"] = "sequential" if free_safe else "parallel"
+
+    return topology
