@@ -1,20 +1,33 @@
-name: KIRA OOS public runner smoke
+name: KIRA World Expansion OOS 2024 Relay
 on:
   workflow_dispatch:
   push:
     paths:
+      - 'kira_oos_2024_relay.py'
       - '.github/workflows/kira-oos-smoke.yml'
+permissions:
+  contents: read
 jobs:
-  smoke:
+  oos-2024:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - name: Verify public runner network
-        shell: bash
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install frozen scorer runtime dependencies
+        run: python -m pip install --disable-pip-version-check pandas requests beautifulsoup4
+      - name: Run frozen OOS-2024 scorer
+        run: python kira_oos_2024_relay.py
+      - name: Show immutable summary
+        if: always()
         run: |
-          python - <<'PY'
-          import urllib.request
-          url='https://www.football-data.co.uk/austria.php'
-          with urllib.request.urlopen(url, timeout=20) as r:
-              body=r.read()
-              print('HTTP', r.status, 'BYTES', len(body), 'FOOTBALL_DATA_REACHABLE', len(body)>1000)
-          PY
+          test -f kira_oos_2024_output/summary.json && cat kira_oos_2024_output/summary.json || true
+      - name: Upload OOS evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kira-world-football-expansion-v1-oos-2024
+          path: kira_oos_2024_output/
+          if-no-files-found: error
